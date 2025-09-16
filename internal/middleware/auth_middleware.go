@@ -38,6 +38,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
+
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
