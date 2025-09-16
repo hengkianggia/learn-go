@@ -2,8 +2,6 @@ package auth
 
 import (
 	"learn/internal/config"
-	"learn/internal/middleware"
-	"learn/internal/models"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -11,10 +9,10 @@ import (
 )
 
 // GenerateJWT membuat token JWT baru
-func GenerateJWT(user models.User) (string, error) {
+func GenerateJWT(user User) (string, error) {
 	jwtKey := []byte(config.AppConfig.JWTSecretKey)
 	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &middleware.Claims{
+	claims := &Claims{
 		Username: user.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),

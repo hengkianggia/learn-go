@@ -3,7 +3,6 @@ package database
 import (
 	"fmt"
 	"learn/internal/config"
-	"learn/internal/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -35,11 +34,6 @@ func ConnectDatabase() {
 	sqlDB.SetMaxOpenConns(config.AppConfig.DBMaxOpenConns)
 	sqlDB.SetConnMaxLifetime(config.AppConfig.DBConnMaxLifetime)
 	sqlDB.SetConnMaxIdleTime(config.AppConfig.DBConnMaxIdleTime)
-
-	err = database.AutoMigrate(&models.User{})
-	if err != nil {
-		panic("Failed to migrate database! " + err.Error())
-	}
 
 	DB = database
 	fmt.Println("Successfully connected to database!")

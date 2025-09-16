@@ -1,11 +1,8 @@
 package router
 
 import (
-	"learn/internal/controllers"
+	"learn/internal/auth"
 	"learn/internal/database"
-	"learn/internal/middleware"
-	"learn/internal/repositories"
-	"learn/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,9 +11,10 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	// Inisialisasi semua layer
-	userRepo := repositories.NewUserRepository(database.DB)
-	authService := services.NewAuthService(userRepo)
-	authController := controllers.NewAuthController(authService)
+	// Menggunakan package auth yang baru
+	userRepo := auth.NewUserRepository(database.DB)
+	authService := auth.NewAuthService(userRepo)
+	authController := auth.NewAuthController(authService)
 
 	// Grup route
 	public := r.Group("/auth")
@@ -27,7 +25,8 @@ func SetupRouter() *gin.Engine {
 	}
 
 	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
+	// Menggunakan middleware dari package auth
+	protected.Use(auth.AuthMiddleware())
 	{
 		protected.GET("/profile", authController.Profile)
 	}

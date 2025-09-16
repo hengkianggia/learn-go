@@ -1,10 +1,9 @@
-package middleware
+package auth
 
 import (
 	"errors"
 	"learn/internal/config"
 	"learn/internal/database"
-	"learn/internal/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +49,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		var user models.User
+		var user User
 		if err := database.DB.Where("username = ?", claims.Username).First(&user).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			c.Abort()

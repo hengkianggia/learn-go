@@ -1,8 +1,6 @@
-package controllers
+package auth
 
 import (
-	"learn/internal/dto"
-	"learn/internal/services"
 	"net/http"
 	"time"
 
@@ -17,15 +15,15 @@ type AuthController interface {
 }
 
 type authController struct {
-	authService services.AuthService
+	authService AuthService
 }
 
-func NewAuthController(authService services.AuthService) AuthController {
+func NewAuthController(authService AuthService) AuthController {
 	return &authController{authService: authService}
 }
 
 func (ctrl *authController) Register(c *gin.Context) {
-	var input dto.RegisterInput
+	var input RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,7 +39,7 @@ func (ctrl *authController) Register(c *gin.Context) {
 }
 
 func (ctrl *authController) Login(c *gin.Context) {
-	var input dto.LoginInput
+	var input LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
