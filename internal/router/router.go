@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func LoggerMiddleware(logger *slog.Logger) gin.HandlerFunc {
@@ -25,7 +26,7 @@ func LoggerMiddleware(logger *slog.Logger) gin.HandlerFunc {
 	}
 }
 
-func SetupRouter(logger *slog.Logger) *gin.Engine {
+func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(LoggerMiddleware(logger))
@@ -36,8 +37,8 @@ func SetupRouter(logger *slog.Logger) *gin.Engine {
 	apiV1 := r.Group("/api/v1")
 	{
 		// Daftarkan rute dari setiap modul di dalam grup ini
-		auth.SetupAuthRoutes(apiV1, logger)
-		// product.SetupProductRoutes(apiV1) // Contoh untuk modul produk
+		auth.SetupAuthRoutes(apiV1, db, logger)
+		// product.SetupProductRoutes(apiV1, db, logger) // Contoh untuk modul produk
 	}
 
 	return r

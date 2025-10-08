@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-func InitDatabase(logger *slog.Logger) {
+func InitDatabase(logger *slog.Logger) *gorm.DB {
 	host := config.AppConfig.DBHost
 	port := config.AppConfig.DBPort
 	user := config.AppConfig.DBUser
@@ -41,4 +41,5 @@ func InitDatabase(logger *slog.Logger) {
 
 	DB = database
 	logger.Info("Successfully connected to database")
+	return DB
 }
