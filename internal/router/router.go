@@ -2,33 +2,18 @@ package router
 
 import (
 	"learn/internal/auth"
-	"learn/internal/database"
-
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// Inisialisasi semua layer
-	// Menggunakan package auth yang baru
-	userRepo := auth.NewUserRepository(database.DB)
-	authService := auth.NewAuthService(userRepo)
-	authController := auth.NewAuthController(authService)
-
-	// Grup route
-	public := r.Group("/auth")
+	// Buat grup utama untuk /api/v1
+	apiV1 := r.Group("/api/v1")
 	{
-		public.POST("/register", authController.Register)
-		public.POST("/login", authController.Login)
-		public.POST("/logout", authController.Logout)
-	}
-
-	protected := r.Group("/api")
-	// Menggunakan middleware dari package auth
-	protected.Use(auth.AuthMiddleware())
-	{
-		protected.GET("/profile", authController.Profile)
+		// Daftarkan rute dari setiap modul di dalam grup ini
+		auth.SetupAuthRoutes(apiV1)
+		// product.SetupProductRoutes(apiV1) // Contoh untuk modul produk
 	}
 
 	return r
