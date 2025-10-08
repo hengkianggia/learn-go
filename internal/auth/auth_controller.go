@@ -5,7 +5,6 @@ import (
 	"learn/internal/pkg/response"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,10 +57,8 @@ func (ctrl *authController) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("jwt_token", token, int(24*time.Hour/time.Second), "/", "localhost", false, true)
-
 	ctrl.logger.Info("user logged in successfully", slog.String("username", input.Username))
-	response.SendSuccess(c, http.StatusOK, "Login successful", nil)
+	response.SendLoginSuccess(c, token)
 }
 
 func (ctrl *authController) Profile(c *gin.Context) {
@@ -75,7 +72,6 @@ func (ctrl *authController) Profile(c *gin.Context) {
 }
 
 func (ctrl *authController) Logout(c *gin.Context) {
-	c.SetCookie("jwt_token", "", -1, "/", "localhost", false, true)
 	ctrl.logger.Info("user logged out successfully")
-	response.SendSuccess(c, http.StatusOK, "Logout successful", nil)
+	response.SendLogoutSuccess(c)
 }

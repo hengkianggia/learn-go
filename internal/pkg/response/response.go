@@ -2,6 +2,8 @@ package response
 
 import (
 	"log/slog"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +30,7 @@ type ValidationErrorDetail struct {
 	Message string `json:"message"`
 }
 
-// --- Helper Functions ---
+// --- Generic Helper Functions ---
 
 func SendSuccess(c *gin.Context, statusCode int, message string, data interface{}) {
 	c.JSON(statusCode, SuccessResponse{
@@ -48,25 +50,37 @@ func sendError(c *gin.Context, statusCode int, code, message string, details int
 	c.AbortWithStatusJSON(statusCode, response)
 }
 
+// --- Specific Success Helpers ---
+
+func SendLoginSuccess(c *gin.Context, token string) {
+	c.SetCookie("jwt_token", token, int(24*time.Hour/time.Second), "/", "localhost", false, true)
+	SendSuccess(c, http.StatusOK, "Login successful", gin.H{"token": token})
+}
+
+func SendLogoutSuccess(c *gin.Context) {
+	c.SetCookie("jwt_token", "", -1, "/", "localhost", false, true)
+	SendSuccess(c, http.StatusOK, "Logout successful", nil)
+}
+
 // --- Specific Error Helpers ---
 
 func SendInternalServerError(c *gin.Context, logger *slog.Logger, err error) {
 	logger.Error("internal server error", slog.String("error", err.Error()))
-	sendError(c, 500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.", nil)
+	sendError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.", nil)
 }
 
 func SendValidationError(c *gin.Context, details []ValidationErrorDetail) {
-	sendError(c, 400, "VALIDATION_ERROR", "Invalid input provided.", details)
+	sendError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid input provided.", details)
 }
 
 func SendBadRequestError(c *gin.Context, message string) {
-	sendError(c, 400, "BAD_REQUEST", message, nil)
+	sendError(c, http.StatusBadRequest, "BAD_REQUEST", message, nil)
 }
 
 func SendUnauthorizedError(c *gin.Context, message string) {
-	sendError(c, 401, "UNAUTHORIZED", message, nil)
+	sendError(c, http.StatusUnauthorized, "UNAUTHORIZED", message, nil)
 }
 
 func SendNotFoundError(c *gin.Context, message string) {
-	sendError(c, 404, "NOT_FOUND", message, nil)
+	sendError(c, http.StatusNotFound, "NOT_FOUND", message, nil)
 }
