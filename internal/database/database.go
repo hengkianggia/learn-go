@@ -3,6 +3,8 @@ package database
 import (
 	"fmt"
 	"learn/internal/config"
+	"log/slog"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -10,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDatabase() {
+func InitDatabase(logger *slog.Logger) {
 	host := config.AppConfig.DBHost
 	port := config.AppConfig.DBPort
 	user := config.AppConfig.DBUser
@@ -21,12 +23,14 @@ func ConnectDatabase() {
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("Failed to connect to database! " + err.Error())
+		logger.Error("failed to connect to database", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	sqlDB, err := database.DB()
 	if err != nil {
-		panic("Failed to get underlying DB object! " + err.Error())
+		logger.Error("failed to get underlying sql.DB object", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	// Set connection pool settings
@@ -36,5 +40,5 @@ func ConnectDatabase() {
 	sqlDB.SetConnMaxIdleTime(config.AppConfig.DBConnMaxIdleTime)
 
 	DB = database
-	fmt.Println("Successfully connected to database!")
+	logger.Info("Successfully connected to database")
 }

@@ -2,7 +2,8 @@ package config
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
+	"os"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -10,7 +11,7 @@ import (
 var Rdb *redis.Client
 var Ctx = context.Background()
 
-func ConnectRedis() {
+func ConnectRedis(logger *slog.Logger) {
 	Rdb = redis.NewClient(&redis.Options{
 		Addr:     AppConfig.RedisAddr,
 		Password: AppConfig.RedisPassword,
@@ -19,8 +20,9 @@ func ConnectRedis() {
 
 	_, err := Rdb.Ping(Ctx).Result()
 	if err != nil {
-		panic("Failed to connect to Redis! " + err.Error())
+		logger.Error("failed to connect to Redis", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
-	fmt.Println("Successfully connected to Redis!")
+	logger.Info("Successfully connected to Redis")
 }

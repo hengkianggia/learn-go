@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	DBHost            string `mapstructure:"DB_HOST"`
-	DBPort            string `mapstructure:"DB_PORT"`	
+	DBPort            string `mapstructure:"DB_PORT"`
 	DBUser            string `mapstructure:"DB_USER"`
 	DBPassword        string `mapstructure:"DB_PASSWORD"`
 	DBName            string `mapstructure:"DB_NAME"`
@@ -28,36 +28,37 @@ type Config struct {
 
 var AppConfig Config
 
-func InitConfig() {
+func InitConfig(logger *slog.Logger) {
 	v := viper.New()
-	v.AddConfigPath(".") // Mencari file config di direktori saat ini
-	v.SetConfigName(".env") // Nama file config tanpa ekstensi
-	v.SetConfigType("env") // Tipe file config
+	v.AddConfigPath(".")
+	v.SetConfigName(".env")
+	v.SetConfigType("env")
 
-	v.AutomaticEnv() // Membaca variabel lingkungan
+	v.AutomaticEnv()
 
-	// Set default values for connection pool
 	v.SetDefault("DB_MAX_IDLE_CONNS", 10)
 	v.SetDefault("DB_MAX_OPEN_CONNS", 100)
-	v.SetDefault("DB_CONN_MAX_LIFETIME", 5 * time.Minute)
-	v.SetDefault("DB_CONN_MAX_IDLE_TIME", 1 * time.Minute)
+	v.SetDefault("DB_CONN_MAX_LIFETIME", 5*time.Minute)
+	v.SetDefault("DB_CONN_MAX_IDLE_TIME", 1*time.Minute)
 
-	// Set default values for Redis
 	v.SetDefault("REDIS_ADDR", "localhost:6379")
 	v.SetDefault("REDIS_PASSWORD", "")
 	v.SetDefault("REDIS_DB", 0)
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Fatalf("Error: .env file not found. Please create one.")
+			logger.Warn(".env file not found, using default values and environment variables")
 		} else {
-			log.Fatalf("Error reading config file: %s", err)
+			logger.Error("failed to read config file", slog.String("error", err.Error()))
+			os.Exit(1)
 		}
 	}
 
 	if err := v.Unmarshal(&AppConfig); err != nil {
-		log.Fatalf("Error unmarshalling config: %s", err)
+		logger.Error("failed to unmarshal config", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
-	fmt.Println("Configuration loaded successfully!")
+	logger.Info("Configuration loaded successfully")
 }
+

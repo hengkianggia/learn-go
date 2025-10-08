@@ -2,9 +2,8 @@ package auth
 
 import (
 	"errors"
+	"log/slog"
 )
-
-// AuthService
 
 type AuthService interface {
 	Register(input RegisterInput) (*User, error)
@@ -13,10 +12,11 @@ type AuthService interface {
 
 type authService struct {
 	userRepo UserRepository
+	logger   *slog.Logger
 }
 
-func NewAuthService(userRepo UserRepository) AuthService {
-	return &authService{userRepo: userRepo}
+func NewAuthService(userRepo UserRepository, logger *slog.Logger) AuthService {
+	return &authService{userRepo: userRepo, logger: logger}
 }
 
 func (s *authService) Register(input RegisterInput) (*User, error) {
@@ -27,6 +27,7 @@ func (s *authService) Register(input RegisterInput) (*User, error) {
 
 	err := s.userRepo.Save(&user)
 	if err != nil {
+		s.logger.Error("failed to save user", slog.String("error", err.Error()))
 		return nil, err
 	}
 
@@ -45,6 +46,7 @@ func (s *authService) Login(input LoginInput) (string, error) {
 
 	token, err := GenerateJWT(*user)
 	if err != nil {
+		s.logger.Error("failed to generate token", slog.String("error", err.Error()))
 		return "", errors.New("could not generate token")
 	}
 

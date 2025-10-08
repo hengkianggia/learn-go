@@ -2,17 +2,16 @@ package auth
 
 import (
 	"learn/internal/database"
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 )
 
-// SetupAuthRoutes sekarang menerima *gin.RouterGroup.
-func SetupAuthRoutes(rg *gin.RouterGroup) {
-	// Inisialisasi semua layer untuk auth
+func SetupAuthRoutes(rg *gin.RouterGroup, logger *slog.Logger) {
 	userRepo := NewUserRepository(database.DB)
-	authService := NewAuthService(userRepo)
-	authController := NewAuthController(authService)
+	authService := NewAuthService(userRepo, logger)
+	authController := NewAuthController(authService, logger)
 
-	// Grup rute publik untuk auth, menjadi: /api/v1/auth
 	authRoutes := rg.Group("/auth")
 	{
 		authRoutes.POST("/register", authController.Register)
@@ -20,8 +19,6 @@ func SetupAuthRoutes(rg *gin.RouterGroup) {
 		authRoutes.POST("/logout", authController.Logout)
 	}
 
-	// Grup rute yang dilindungi, menjadi: /api/v1/profile
-	// Middleware hanya diterapkan di grup ini.
 	protected := rg.Group("/")
 	protected.Use(AuthMiddleware())
 	{
