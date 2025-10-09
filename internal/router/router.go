@@ -1,7 +1,7 @@
 package router
 
 import (
-	"learn/internal/auth"
+	"learn/internal/feature/auth"
 	"log/slog"
 	"time"
 

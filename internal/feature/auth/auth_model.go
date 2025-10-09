@@ -20,7 +20,7 @@ type User struct {
 	Password    string   `gorm:"not null"`
 	UserType    UserType `gorm:"type:user_type;not null"`
 	PhoneNumber string
-	IsVerified  bool     `gorm:"default:false"`
+	IsVerified  bool `gorm:"default:false"`
 }
 
 // BeforeSave is a GORM hook that hashes the user's password before saving.

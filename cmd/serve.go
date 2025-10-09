@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"learn/internal/auth"
 	"learn/internal/config"
 	"learn/internal/database"
+	"learn/internal/feature/auth"
 	"learn/internal/pkg/logger"
 	"learn/internal/router"
 	"log/slog"
