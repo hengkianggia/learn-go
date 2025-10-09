@@ -2,7 +2,7 @@ package ratelimiter
 
 import (
 	"fmt"
-	"learn/internal/auth"
+	"learn/internal/feature/auth"
 	redis "learn/internal/config"
 	"net/http"
 	"time"

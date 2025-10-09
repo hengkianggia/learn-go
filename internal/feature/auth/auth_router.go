@@ -8,9 +8,6 @@ import (
 )
 
 func SetupAuthRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
-	// Auto-migrate the User model, making the module self-contained
-	db.AutoMigrate(&User{})
-
 	userRepo := NewUserRepository(db)
 	authService := NewAuthService(userRepo, logger)
 	authController := NewAuthController(authService, logger)

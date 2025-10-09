@@ -2,6 +2,9 @@ package router
 
 import (
 	"learn/internal/feature/auth"
+	"learn/internal/feature/event"
+	"learn/internal/feature/speaker"
+	"learn/internal/feature/venue"
 	"log/slog"
 	"time"
 
@@ -36,9 +39,10 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
 	// Buat grup utama untuk /api/v1
 	apiV1 := r.Group("/api/v1")
 	{
-		// Daftarkan rute dari setiap modul di dalam grup ini
 		auth.SetupAuthRoutes(apiV1, db, logger)
-		// product.SetupProductRoutes(apiV1, db, logger) // Contoh untuk modul produk
+		venue.SetupVenueRoutes(apiV1, db, logger)
+		speaker.SetupSpeakerRoutes(apiV1, db, logger)
+		event.SetupEventRoutes(apiV1, db, logger)
 	}
 
 	return r

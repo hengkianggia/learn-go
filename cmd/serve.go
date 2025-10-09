@@ -4,6 +4,9 @@ import (
 	"learn/internal/config"
 	"learn/internal/database"
 	"learn/internal/feature/auth"
+	"learn/internal/feature/event"
+	"learn/internal/feature/speaker"
+	"learn/internal/feature/venue"
 	"learn/internal/pkg/logger"
 	"learn/internal/router"
 	"log/slog"
@@ -25,7 +28,7 @@ var serveCmd = &cobra.Command{
 		config.ConnectRedis(log)
 
 		// Drop table for development
-		db.Migrator().DropTable(&auth.User{})
+		db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &speaker.Speaker{}, &event.Event{}, &event.EventSpeaker{})
 
 		// Create the user_type enum
 		db.Exec(`DO $$ BEGIN
@@ -34,8 +37,15 @@ var serveCmd = &cobra.Command{
 			WHEN duplicate_object THEN null;
 		END $$;`)
 
+		// Create the event_status enum
+		db.Exec(`DO $$ BEGIN
+			CREATE TYPE event_status AS ENUM ('DRAFT', 'PUBLISHED', 'CANCELLED');
+		EXCEPTION
+			WHEN duplicate_object THEN null;
+		END $$;`)
+
 		// Migrate the schema
-		db.AutoMigrate(&auth.User{})
+		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &speaker.Speaker{}, &event.Event{}, &event.EventSpeaker{})
 
 		// 3. Setup Router with dependencies
 		r := router.SetupRouter(log, db)
