@@ -1,22 +1,26 @@
 package venue
 
 import (
+	"learn/internal/feature/auth"
 	"log/slog"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func SetupVenueRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
-	// venueRepo := NewVenueRepository(db)
-	// venueService := NewVenueService(venueRepo, logger)
-	// venueController := NewVenueController(venueService, logger)
+	venueRepo := NewVenueRepository(db)
+	venueService := NewVenueService(venueRepo, logger)
+	venueController := NewVenueController(venueService, logger, db)
 
-	// venueRoutes := rg.Group("/venues")
-	// {
-	// 	venueRoutes.POST("/", venueController.CreateVenue)
-	// 	venueRoutes.GET("/", venueController.GetAllVenues)
-	// 	venueRoutes.GET("/:id", venueController.GetVenueByID)
-	// 	venueRoutes.PUT("/:id", venueController.UpdateVenue)
-	// 	venueRoutes.DELETE("/:id", venueController.DeleteVenue)
-	// }
+	venueRoutes := rg.Group("/venues")
+	{
+		venueRoutes.GET("/", venueController.GetAllVenues) // Public route
+
+		// Authenticated routes
+		authenticated := venueRoutes.Group("/")
+		authenticated.Use(auth.AuthMiddleware())
+		{
+			authenticated.POST("/", auth.RoleMiddleware(auth.Administrator, auth.Organizer), venueController.CreateVenue)
+		}
+	}
 }

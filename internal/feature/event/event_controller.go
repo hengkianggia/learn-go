@@ -44,7 +44,8 @@ func (ctrl *eventController) CreateEvent(c *gin.Context) {
 
 func (ctrl *eventController) GetAllEvents(c *gin.Context) {
 	var events []Event
-	paginatedResponse, err := pagination.Paginate(c, ctrl.db, &Event{}, &events)
+	db := ctrl.db.Preload("Venue")
+	paginatedResponse, err := pagination.Paginate(c, db, &Event{}, &events)
 	if err != nil {
 		response.SendInternalServerError(c, ctrl.logger, err)
 		return
