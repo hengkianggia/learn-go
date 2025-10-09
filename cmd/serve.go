@@ -47,6 +47,9 @@ var serveCmd = &cobra.Command{
 		// Migrate the schema
 		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &speaker.Speaker{}, &event.Event{}, &event.EventSpeaker{})
 
+		// Seed the database
+		auth.SeedUsers(db, log)
+
 		// 3. Setup Router with dependencies
 		r := router.SetupRouter(log, db)
 

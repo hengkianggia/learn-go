@@ -4,6 +4,7 @@ import (
 	"errors"
 	"learn/internal/config"
 	"learn/internal/database"
+	"learn/internal/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -57,6 +58,40 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("user", user)
+		c.Next()
+	}
+}
+
+func RoleMiddleware(roles ...UserType) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userCtx, exists := c.Get("user")
+		if !exists {
+			response.SendUnauthorizedError(c, "User not found in context")
+			c.Abort()
+			return
+		}
+
+		user, ok := userCtx.(User)
+		if !ok {
+			response.SendInternalServerError(c, nil, errors.New("invalid user type in context"))
+			c.Abort()
+			return
+		}
+
+		hasRole := false
+		for _, role := range roles {
+			if user.UserType == role {
+				hasRole = true
+				break
+			}
+		}
+
+		if !hasRole {
+			response.SendForbiddenError(c, "You don't have permission to access this resource")
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

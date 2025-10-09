@@ -81,6 +81,10 @@ func SendUnauthorizedError(c *gin.Context, message string) {
 	sendError(c, http.StatusUnauthorized, "UNAUTHORIZED", message, nil)
 }
 
+func SendForbiddenError(c *gin.Context, message string) {
+	sendError(c, http.StatusForbidden, "FORBIDDEN", message, nil)
+}
+
 func SendNotFoundError(c *gin.Context, message string) {
 	sendError(c, http.StatusNotFound, "NOT_FOUND", message, nil)
 }
