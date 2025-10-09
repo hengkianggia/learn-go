@@ -2,8 +2,10 @@ package event
 
 import (
 	"learn/internal/feature/auth"
+	"learn/internal/feature/speaker"
 	"learn/internal/feature/venue"
 	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -11,13 +13,15 @@ import (
 func SetupEventRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 	eventRepo := NewEventRepository(db)
 	venueRepo := venue.NewVenueRepository(db)
-	eventService := NewEventService(eventRepo, venueRepo, logger)
+	speakerRepo := speaker.NewSpeakerRepository(db)
+
+	eventService := NewEventService(eventRepo, venueRepo, speakerRepo, logger)
 	eventController := NewEventController(eventService, logger, db)
 
 	eventRoutes := rg.Group("/events")
 	{
 		eventRoutes.GET("/", eventController.GetAllEvents) // Public route
-		
+
 		// Authenticated routes
 		authenticated := eventRoutes.Group("/")
 		authenticated.Use(auth.AuthMiddleware())

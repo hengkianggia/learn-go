@@ -1,9 +1,10 @@
 package event
 
 import (
-	"time"
-	"learn/internal/feature/venue"
 	"learn/internal/feature/speaker"
+	"learn/internal/feature/venue"
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -17,20 +18,21 @@ const (
 
 type Event struct {
 	gorm.Model
-	VenueID       uint      `gorm:"not null"`
-	Venue         venue.Venue
-	Name          string    `gorm:"not null"`
-	Description   string
-	Date          time.Time `gorm:"not null"`
-	Time          time.Time `gorm:"not null"`
-	Status        EventStatus `gorm:"default:'DRAFT'"`
+	VenueID        uint      `gorm:"not null"`
+	Venue          venue.Venue
+	Name           string    `gorm:"not null"`
+	Description    string
+	Date           time.Time `gorm:"not null"`
+	Time           time.Time `gorm:"not null"`
+	Status         EventStatus `gorm:"default:'DRAFT'"`
 	SalesStartDate time.Time
-	SalesEndDate  time.Time
+	SalesEndDate   time.Time
+	EventSpeakers  []EventSpeaker `gorm:"foreignKey:EventID"`
 }
 
 type EventSpeaker struct {
-	EventID      uint   `gorm:"primaryKey"`
-	SpeakerID    uint   `gorm:"primaryKey"`
+	EventID      uint `gorm:"primaryKey"`
+	SpeakerID    uint `gorm:"primaryKey"`
 	Event        Event
 	Speaker      speaker.Speaker
 	SessionTitle string

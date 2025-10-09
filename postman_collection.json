@@ -108,7 +108,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"venue_id\": 1,\n  \"name\": \"My Awesome Event\",\n  \"description\": \"This is a description of my awesome event.\",\n  \"date\": \"2025-12-25T00:00:00Z\",\n  \"time\": \"2025-12-25T18:00:00Z\",\n  \"status\": \"DRAFT\",\n  \"sales_start_date\": \"2025-12-01T00:00:00Z\",\n  \"sales_end_date\": \"2025-12-24T00:00:00Z\"\n}",
+              "raw": "{\n  \"venue_id\": 1,\n  \"name\": \"My Awesome Event\",\n  \"description\": \"This is a description of my awesome event.\",\n  \"date\": \"2025-12-25T00:00:00Z\",\n  \"time\": \"2025-12-25T18:00:00Z\",\n  \"status\": \"DRAFT\",\n  \"sales_start_date\": \"2025-12-01T00:00:00Z\",\n  \"sales_end_date\": \"2025-12-24T00:00:00Z\",\n  \"speakers\": [\n    {\n      \"speaker_id\": 1,\n      \"session_title\": \"Introduction to Go\"\n    },\n    {\n      \"speaker_id\": 2,\n      \"session_title\": \"Building APIs with Gin\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -123,7 +123,8 @@
               "path": [
                 "events"
               ]
-            }
+            },
+            "description": "Creates a new event.\n\n**Prerequisites:**\n1. You must be authenticated as an **organizer** or **administrator**.\n2. You must have the `venue_id` of an existing venue.\n3. You must have the `speaker_id` of existing speakers. You can create new speakers using the \"Create Speaker\" request in the \"Speakers\" folder.\n\n**Request Body:**\nThe `speakers` field is an array of objects, where each object contains a `speaker_id` and a `session_title`."
           },
           "response": []
         },
