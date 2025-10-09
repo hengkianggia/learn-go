@@ -7,6 +7,5 @@ import (
 type Speaker struct {
 	gorm.Model
 	Name      string `gorm:"not null"`
-	Email     string `gorm:"unique"`
 	Bio       string
 }
