@@ -1,24 +1,28 @@
 package event
 
 import (
+	"learn/internal/pkg/pagination"
 	"learn/internal/pkg/response"
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type EventController interface {
 	CreateEvent(c *gin.Context)
+	GetAllEvents(c *gin.Context)
 }
 
 type eventController struct {
 	eventService EventService
 	logger       *slog.Logger
+	db           *gorm.DB
 }
 
-func NewEventController(eventService EventService, logger *slog.Logger) EventController {
-	return &eventController{eventService: eventService, logger: logger}
+func NewEventController(eventService EventService, logger *slog.Logger, db *gorm.DB) EventController {
+	return &eventController{eventService: eventService, logger: logger, db: db}
 }
 
 func (ctrl *eventController) CreateEvent(c *gin.Context) {
@@ -36,4 +40,15 @@ func (ctrl *eventController) CreateEvent(c *gin.Context) {
 	}
 
 	response.SendSuccess(c, http.StatusCreated, "Event created successfully", event)
+}
+
+func (ctrl *eventController) GetAllEvents(c *gin.Context) {
+	var events []Event
+	paginatedResponse, err := pagination.Paginate(c, ctrl.db, &Event{}, &events)
+	if err != nil {
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResponse)
 }
