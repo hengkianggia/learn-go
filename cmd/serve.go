@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"learn/internal/auth"
 	"learn/internal/config"
 	"learn/internal/database"
 	"learn/internal/pkg/logger"
@@ -22,6 +23,19 @@ var serveCmd = &cobra.Command{
 		config.InitConfig(log)
 		db := database.InitDatabase(log)
 		config.ConnectRedis(log)
+
+		// Drop table for development
+		db.Migrator().DropTable(&auth.User{})
+
+		// Create the user_type enum
+		db.Exec(`DO $$ BEGIN
+			CREATE TYPE user_type AS ENUM ('organizer', 'attendee', 'administrator');
+		EXCEPTION
+			WHEN duplicate_object THEN null;
+		END $$;`)
+
+		// Migrate the schema
+		db.AutoMigrate(&auth.User{})
 
 		// 3. Setup Router with dependencies
 		r := router.SetupRouter(log, db)

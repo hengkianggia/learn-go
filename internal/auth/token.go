@@ -13,7 +13,7 @@ func GenerateJWT(user User) (string, error) {
 	jwtKey := []byte(config.AppConfig.JWTSecretKey)
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
-		Username: user.Username,
+		Email: user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

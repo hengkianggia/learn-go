@@ -6,7 +6,7 @@ import (
 
 type UserRepository interface {
 	Save(user *User) error
-	FindByUsername(username string) (*User, error)
+	FindByEmail(email string) (*User, error)
 }
 
 type userRepository struct {
@@ -18,13 +18,12 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (r *userRepository) Save(user *User) error {
-	// GORM BeforeSave hook akan hash password
 	return r.db.Create(user).Error
 }
 
-func (r *userRepository) FindByUsername(username string) (*User, error) {
+func (r *userRepository) FindByEmail(email string) (*User, error) {
 	var user User
-	err := r.db.Where("username = ?", username).First(&user).Error
+	err := r.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}

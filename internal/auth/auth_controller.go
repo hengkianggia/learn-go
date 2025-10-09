@@ -35,12 +35,30 @@ func (ctrl *authController) Register(c *gin.Context) {
 
 	user, err := ctrl.authService.Register(input)
 	if err != nil {
-		response.SendBadRequestError(c, "Username already exists")
+		if err.Error() == "passwords do not match" {
+			response.SendBadRequestError(c, "Passwords do not match")
+		} else {
+			// This handles other errors like "email already exists"
+			response.SendBadRequestError(c, "A user with that email already exists")
+		}
 		return
 	}
 
-	ctrl.logger.Info("user registered successfully", slog.String("username", user.Username))
-	response.SendSuccess(c, http.StatusCreated, "Registration successful", gin.H{"id": user.ID, "username": user.Username})
+	ctrl.logger.Info("user registered successfully", slog.String("name", user.Name))
+
+	// Map user model to UserResponse DTO
+	userResponse := UserResponse{
+		ID:          user.ID,
+		Name:        user.Name,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		UserType:    user.UserType,
+		IsVerified:  user.IsVerified,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+	}
+
+	response.SendSuccess(c, http.StatusCreated, "Registration successful", userResponse)
 }
 
 func (ctrl *authController) Login(c *gin.Context) {
@@ -53,22 +71,41 @@ func (ctrl *authController) Login(c *gin.Context) {
 
 	token, err := ctrl.authService.Login(input)
 	if err != nil {
-		response.SendUnauthorizedError(c, "Invalid username or password")
+		response.SendUnauthorizedError(c, "Invalid email or password")
 		return
 	}
 
-	ctrl.logger.Info("user logged in successfully", slog.String("username", input.Username))
+	ctrl.logger.Info("user logged in successfully", slog.String("email", input.Email))
 	response.SendLoginSuccess(c, token)
 }
 
 func (ctrl *authController) Profile(c *gin.Context) {
-	user, exists := c.Get("user")
+	userCtx, exists := c.Get("user")
 	if !exists {
 		response.SendInternalServerError(c, ctrl.logger, errors.New("user not found in context"))
 		return
 	}
 
-	response.SendSuccess(c, http.StatusOK, "Profile retrieved successfully", user)
+	// Type assert user from context
+	user, ok := userCtx.(User)
+	if !ok {
+		response.SendInternalServerError(c, ctrl.logger, errors.New("invalid user type in context"))
+		return
+	}
+
+	// Map user model to UserResponse DTO
+	userResponse := UserResponse{
+		ID:          user.ID,
+		Name:        user.Name,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		UserType:    user.UserType,
+		IsVerified:  user.IsVerified,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Profile retrieved successfully", userResponse)
 }
 
 func (ctrl *authController) Logout(c *gin.Context) {

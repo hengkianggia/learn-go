@@ -20,9 +20,22 @@ func NewAuthService(userRepo UserRepository, logger *slog.Logger) AuthService {
 }
 
 func (s *authService) Register(input RegisterInput) (*User, error) {
+	// Validate that passwords match
+	if input.Password != input.ConfirmPassword {
+		return nil, errors.New("passwords do not match")
+	}
+
 	user := User{
-		Username: input.Username,
-		Password: input.Password,
+		Name:        input.Name,
+		Email:       input.Email,
+		Password:    input.Password, // Password will be hashed by the BeforeSave hook
+		PhoneNumber: input.PhoneNumber,
+		UserType:    input.UserType,
+		IsVerified:  false,
+	}
+
+	if user.UserType == "" {
+		user.UserType = Attendee
 	}
 
 	err := s.userRepo.Save(&user)
@@ -35,7 +48,7 @@ func (s *authService) Register(input RegisterInput) (*User, error) {
 }
 
 func (s *authService) Login(input LoginInput) (string, error) {
-	user, err := s.userRepo.FindByUsername(input.Username)
+	user, err := s.userRepo.FindByEmail(input.Email)
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}

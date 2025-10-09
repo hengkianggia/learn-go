@@ -11,7 +11,7 @@ import (
 )
 
 type Claims struct {
-	Username string `json:"username"`
+	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
 
@@ -50,7 +50,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		var user User
-		if err := database.DB.Where("username = ?", claims.Username).First(&user).Error; err != nil {
+		if err := database.DB.Where("email = ?", claims.Email).First(&user).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			c.Abort()
 			return
