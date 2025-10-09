@@ -39,17 +39,23 @@ func (ctrl *eventController) CreateEvent(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusCreated, "Event created successfully", event)
+	response.SendSuccess(c, http.StatusCreated, "Event created successfully", ToEventResponse(*event))
 }
 
 func (ctrl *eventController) GetAllEvents(c *gin.Context) {
 	var events []Event
 	db := ctrl.db.Preload("Venue")
-	paginatedResponse, err := pagination.Paginate(c, db, &Event{}, &events)
+	paginatedResult, err := pagination.Paginate(c, db, &Event{}, &events)
 	if err != nil {
 		response.SendInternalServerError(c, ctrl.logger, err)
 		return
 	}
 
-	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResponse)
+	if len(events) == 0 {
+		paginatedResult.Data = make([]EventResponse, 0)
+	} else {
+		paginatedResult.Data = ToEventResponses(events)
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
 }

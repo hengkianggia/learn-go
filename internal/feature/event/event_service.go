@@ -21,7 +21,6 @@ func NewEventService(eventRepo EventRepository, venueRepo venue.VenueRepository,
 }
 
 func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
-	// Check if venue exists
 	_, err := s.venueRepo.GetVenueByID(input.VenueID)
 	if err != nil {
 		return nil, errors.New("venue not found")

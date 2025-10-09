@@ -16,8 +16,6 @@ type LoginInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-// UserResponse defines the data returned for a user.
-
 type UserResponse struct {
 	ID          uint      `json:"id"`
 	Name        string    `json:"name"`
