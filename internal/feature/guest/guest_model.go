@@ -1,10 +1,10 @@
-package speaker
+package guest
 
 import (
 	"gorm.io/gorm"
 )
 
-type Speaker struct {
+type Guest struct {
 	gorm.Model
 	Name      string `gorm:"not null"`
 	Bio       string

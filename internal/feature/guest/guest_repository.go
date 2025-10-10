@@ -1,0 +1,26 @@
+package guest
+
+import "gorm.io/gorm"
+
+type GuestRepository interface {
+	CreateGuest(guest *Guest) error
+	GetGuestByID(id uint) (*Guest, error)
+}
+
+type guestRepository struct {
+	db *gorm.DB
+}
+
+func NewGuestRepository(db *gorm.DB) GuestRepository {
+	return &guestRepository{db: db}
+}
+
+func (r *guestRepository) CreateGuest(guest *Guest) error {
+	return r.db.Create(guest).Error
+}
+
+func (r *guestRepository) GetGuestByID(id uint) (*Guest, error) {
+	var guest Guest
+	err := r.db.First(&guest, id).Error
+	return &guest, err
+}

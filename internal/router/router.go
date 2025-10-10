@@ -3,7 +3,7 @@ package router
 import (
 	"learn/internal/feature/auth"
 	"learn/internal/feature/event"
-	"learn/internal/feature/speaker"
+	"learn/internal/feature/guest"
 	"learn/internal/feature/venue"
 	"log/slog"
 	"time"
@@ -41,7 +41,7 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
 	{
 		auth.SetupAuthRoutes(apiV1, db, logger)
 		venue.SetupVenueRoutes(apiV1, db, logger)
-		speaker.SetupSpeakerRoutes(apiV1, db, logger)
+		guest.SetupGuestRoutes(apiV1, db, logger)
 		event.SetupEventRoutes(apiV1, db, logger)
 	}
 

@@ -5,7 +5,7 @@ import (
 	"learn/internal/database"
 	"learn/internal/feature/auth"
 	"learn/internal/feature/event"
-	"learn/internal/feature/speaker"
+	"learn/internal/feature/guest"
 	"learn/internal/feature/venue"
 	"learn/internal/pkg/logger"
 	"learn/internal/router"
@@ -28,7 +28,7 @@ var serveCmd = &cobra.Command{
 		config.ConnectRedis(log)
 
 		// Drop table for development
-		db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &speaker.Speaker{}, &event.Event{}, &event.EventSpeaker{})
+		db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventGuest{})
 
 		// Create the user_type enum
 		db.Exec(`DO $$ BEGIN
@@ -45,7 +45,7 @@ var serveCmd = &cobra.Command{
 		END $$;`)
 
 		// Migrate the schema
-		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &speaker.Speaker{}, &event.Event{}, &event.EventSpeaker{})
+		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventGuest{})
 
 		// Seed the database
 		auth.SeedUsers(db, log)

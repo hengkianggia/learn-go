@@ -2,7 +2,7 @@ package event
 
 import (
 	"errors"
-	"learn/internal/feature/speaker"
+	"learn/internal/feature/guest"
 	"learn/internal/feature/venue"
 	"log/slog"
 )
@@ -12,14 +12,14 @@ type EventService interface {
 }
 
 type eventService struct {
-	eventRepo   EventRepository
-	venueRepo   venue.VenueRepository
-	speakerRepo speaker.SpeakerRepository
-	logger      *slog.Logger
+	eventRepo EventRepository
+	venueRepo venue.VenueRepository
+	guestRepo guest.GuestRepository
+	logger    *slog.Logger
 }
 
-func NewEventService(eventRepo EventRepository, venueRepo venue.VenueRepository, speakerRepo speaker.SpeakerRepository, logger *slog.Logger) EventService {
-	return &eventService{eventRepo: eventRepo, venueRepo: venueRepo, speakerRepo: speakerRepo, logger: logger}
+func NewEventService(eventRepo EventRepository, venueRepo venue.VenueRepository, guestRepo guest.GuestRepository, logger *slog.Logger) EventService {
+	return &eventService{eventRepo: eventRepo, venueRepo: venueRepo, guestRepo: guestRepo, logger: logger}
 }
 
 func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
@@ -51,26 +51,26 @@ func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
 		return nil, err
 	}
 
-	// Now, handle the speakers
-	if len(input.Speakers) > 0 {
-		var eventSpeakers []EventSpeaker
-		for _, speakerInput := range input.Speakers {
-			// Check if speaker exists
-			_, err := s.speakerRepo.GetSpeakerByID(speakerInput.SpeakerID)
+	// Now, handle the guests
+	if len(input.Guests) > 0 {
+		var eventGuests []EventGuest
+		for _, guestInput := range input.Guests {
+			// Check if guest exists
+			_, err := s.guestRepo.GetGuestByID(guestInput.GuestID)
 			if err != nil {
-				return nil, errors.New("one or more speakers not found")
+				return nil, errors.New("one or more guests not found")
 			}
 
-			eventSpeakers = append(eventSpeakers, EventSpeaker{
+			eventGuests = append(eventGuests, EventGuest{
 				EventID:      event.ID,
-				SpeakerID:    speakerInput.SpeakerID,
-				SessionTitle: speakerInput.SessionTitle,
+				GuestID:    guestInput.GuestID,
+				SessionTitle: guestInput.SessionTitle,
 			})
 		}
 
 		// Create the associations in the join table
-		if err := s.eventRepo.CreateEventSpeakers(eventSpeakers); err != nil {
-			s.logger.Error("failed to create event speakers", slog.String("error", err.Error()))
+		if err := s.eventRepo.CreateEventGuests(eventGuests); err != nil {
+			s.logger.Error("failed to create event guests", slog.String("error", err.Error()))
 			return nil, err
 		}
 	}

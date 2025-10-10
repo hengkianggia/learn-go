@@ -1,13 +1,13 @@
 package event
 
 import (
-	"learn/internal/feature/speaker"
+	"learn/internal/feature/guest"
 	"learn/internal/feature/venue"
 	"time"
 )
 
-type SpeakerInput struct {
-	SpeakerID    uint   `json:"speaker_id" binding:"required"`
+type GuestInput struct {
+	GuestID    uint   `json:"guest_id" binding:"required"`
 	SessionTitle string `json:"session_title"`
 }
 
@@ -20,11 +20,11 @@ type CreateEventInput struct {
 	Status         EventStatus    `json:"status,omitempty"`
 	SalesStartDate time.Time      `json:"sales_start_date,omitempty"`
 	SalesEndDate   time.Time      `json:"sales_end_date,omitempty"`
-	Speakers       []SpeakerInput `json:"speakers"`
+	Guests       []GuestInput `json:"guests"`
 }
 
-type EventSpeakerResponse struct {
-	Speaker      speaker.Speaker `json:"speaker"`
+type EventGuestResponse struct {
+	Guest      guest.Guest `json:"guest"`
 	SessionTitle string          `json:"session_title"`
 }
 
@@ -38,17 +38,17 @@ type EventResponse struct {
 	Status         EventStatus            `json:"status"`
 	SalesStartDate time.Time              `json:"sales_start_date"`
 	SalesEndDate   time.Time              `json:"sales_end_date"`
-	EventSpeakers  []EventSpeakerResponse `json:"speakers"`
+	EventGuests  []EventGuestResponse `json:"guests"`
 	CreatedAt      time.Time              `json:"created_at"`
 	UpdatedAt      time.Time              `json:"updated_at"`
 }
 
 func ToEventResponse(event Event) EventResponse {
-	var eventSpeakerResponses []EventSpeakerResponse
-	for _, es := range event.EventSpeakers {
-		eventSpeakerResponses = append(eventSpeakerResponses, EventSpeakerResponse{
-			Speaker:      es.Speaker,
-			SessionTitle: es.SessionTitle,
+	var eventGuestResponses []EventGuestResponse
+	for _, eg := range event.EventGuests {
+		eventGuestResponses = append(eventGuestResponses, EventGuestResponse{
+			Guest:      eg.Guest,
+			SessionTitle: eg.SessionTitle,
 		})
 	}
 
@@ -62,7 +62,7 @@ func ToEventResponse(event Event) EventResponse {
 		Status:         event.Status,
 		SalesStartDate: event.SalesStartDate,
 		SalesEndDate:   event.SalesEndDate,
-		EventSpeakers:  eventSpeakerResponses,
+		EventGuests:  eventGuestResponses,
 		CreatedAt:      event.CreatedAt,
 		UpdatedAt:      event.UpdatedAt,
 	}
