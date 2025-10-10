@@ -28,7 +28,7 @@ var serveCmd = &cobra.Command{
 		config.ConnectRedis(log)
 
 		// Drop table for development
-		db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventGuest{})
+		// db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventGuest{})
 
 		// Create the user_type enum
 		db.Exec(`DO $$ BEGIN

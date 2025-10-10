@@ -1,10 +1,11 @@
 package pagination
 
 import (
-	"gorm.io/gorm"
 	"math"
 	"strconv"
+
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type Meta struct {
@@ -15,8 +16,8 @@ type Meta struct {
 }
 
 type PaginatedResponse struct {
-	Data interface{} `json:"data"`
 	Meta Meta        `json:"meta"`
+	Data interface{} `json:"data"`
 }
 
 func Paginate(c *gin.Context, db *gorm.DB, model interface{}, out interface{}) (*PaginatedResponse, error) {

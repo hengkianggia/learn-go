@@ -29,7 +29,7 @@ func (r *eventRepository) GetEventByID(id uint) (*Event, error) {
 
 func (r *eventRepository) FindBySlug(slug string) (*Event, error) {
 	var event Event
-	err := r.db.Where("slug = ?", slug).First(&event).Error
+	err := r.db.Preload("Venue").Preload("EventGuests.Guest").Where("slug = ?", slug).First(&event).Error
 	return &event, err
 }
 

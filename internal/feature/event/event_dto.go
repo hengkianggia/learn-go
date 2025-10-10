@@ -24,14 +24,13 @@ type CreateEventInput struct {
 }
 
 type EventGuestResponse struct {
-	Guest        guest.Guest `json:"guest"`
-	SessionTitle string      `json:"session_title"`
+	Guest        guest.GuestResponse `json:"guest"`
+	SessionTitle string              `json:"session_title"`
 }
 
 type EventResponse struct {
 	ID             uint                 `json:"id"`
 	Slug           string               `json:"slug"`
-	Venue          venue.Venue          `json:"venue"`
 	Name           string               `json:"name"`
 	Description    string               `json:"description"`
 	Date           time.Time            `json:"date"`
@@ -39,6 +38,7 @@ type EventResponse struct {
 	Status         EventStatus          `json:"status"`
 	SalesStartDate time.Time            `json:"sales_start_date"`
 	SalesEndDate   time.Time            `json:"sales_end_date"`
+	Venue          venue.VenueResponse  `json:"venue"`
 	EventGuests    []EventGuestResponse `json:"guests"`
 	CreatedAt      time.Time            `json:"created_at"`
 	UpdatedAt      time.Time            `json:"updated_at"`
@@ -48,7 +48,7 @@ func ToEventResponse(event Event) EventResponse {
 	var eventGuestResponses []EventGuestResponse
 	for _, eg := range event.EventGuests {
 		eventGuestResponses = append(eventGuestResponses, EventGuestResponse{
-			Guest:        eg.Guest,
+			Guest:        guest.ToGuestResponse(eg.Guest),
 			SessionTitle: eg.SessionTitle,
 		})
 	}
@@ -56,7 +56,6 @@ func ToEventResponse(event Event) EventResponse {
 	return EventResponse{
 		ID:             event.ID,
 		Slug:           event.Slug,
-		Venue:          event.Venue,
 		Name:           event.Name,
 		Description:    event.Description,
 		Date:           event.Date,
@@ -64,6 +63,7 @@ func ToEventResponse(event Event) EventResponse {
 		Status:         event.Status,
 		SalesStartDate: event.SalesStartDate,
 		SalesEndDate:   event.SalesEndDate,
+		Venue:          venue.ToVenueResponse(event.Venue),
 		EventGuests:    eventGuestResponses,
 		CreatedAt:      event.CreatedAt,
 		UpdatedAt:      event.UpdatedAt,
