@@ -1,9 +1,17 @@
 package venue
 
-import "log/slog"
+import (
+	"errors"
+	"fmt"
+	"learn/internal/pkg/slug"
+	"log/slog"
+
+	"gorm.io/gorm"
+)
 
 type VenueService interface {
 	CreateVenue(input CreateVenueInput) (*Venue, error)
+	GetVenueBySlug(slug string) (*Venue, error)
 }
 
 type venueService struct {
@@ -16,8 +24,26 @@ func NewVenueService(venueRepo VenueRepository, logger *slog.Logger) VenueServic
 }
 
 func (s *venueService) CreateVenue(input CreateVenueInput) (*Venue, error) {
+	baseSlug := slug.GenerateSlug(input.Name)
+	uniqueSlug := baseSlug
+	count := 1
+
+	for {
+		_, err := s.venueRepo.FindBySlug(uniqueSlug)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				break
+			}
+			s.logger.Error("failed to check for existing slug", slog.String("error", err.Error()))
+			return nil, err
+		}
+		uniqueSlug = fmt.Sprintf("%s-%d", baseSlug, count)
+		count++
+	}
+
 	venue := Venue{
 		Name:      input.Name,
+		Slug:      uniqueSlug,
 		Address:   input.Address,
 		City:      input.City,
 		State:     input.State,
@@ -33,4 +59,8 @@ func (s *venueService) CreateVenue(input CreateVenueInput) (*Venue, error) {
 	}
 
 	return &venue, nil
+}
+
+func (s *venueService) GetVenueBySlug(slug string) (*Venue, error) {
+	return s.venueRepo.FindBySlug(slug)
 }

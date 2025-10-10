@@ -144,6 +144,24 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get Event by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/my-awesome-event",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "my-awesome-event"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -192,6 +210,24 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get Venue by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/venues/my-awesome-venue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "venues",
+                "my-awesome-venue"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -219,6 +255,41 @@
               ],
               "path": [
                 "guests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Guests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/guests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Guest by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/guests/john-doe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guests",
+                "john-doe"
               ]
             }
           },

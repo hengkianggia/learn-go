@@ -18,12 +18,13 @@ const (
 
 type Event struct {
 	gorm.Model
-	VenueID        uint `gorm:"not null"`
+	VenueID        uint      `gorm:"not null"`
 	Venue          venue.Venue
-	Name           string `gorm:"not null"`
+	Name           string    `gorm:"not null"`
+	Slug           string    `gorm:"uniqueIndex;not null"`
 	Description    string
-	Date           time.Time   `gorm:"not null"`
-	Time           time.Time   `gorm:"not null"`
+	Date           time.Time `gorm:"not null"`
+	Time           time.Time `gorm:"not null"`
 	Status         EventStatus `gorm:"default:'DRAFT'"`
 	SalesStartDate time.Time
 	SalesEndDate   time.Time

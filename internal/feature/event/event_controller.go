@@ -1,6 +1,7 @@
 package event
 
 import (
+	"errors"
 	"learn/internal/pkg/pagination"
 	"learn/internal/pkg/response"
 	"log/slog"
@@ -13,6 +14,7 @@ import (
 type EventController interface {
 	CreateEvent(c *gin.Context)
 	GetAllEvents(c *gin.Context)
+	GetEventBySlug(c *gin.Context)
 }
 
 type eventController struct {
@@ -58,4 +60,19 @@ func (ctrl *eventController) GetAllEvents(c *gin.Context) {
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
+}
+
+func (ctrl *eventController) GetEventBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	event, err := ctrl.eventService.GetEventBySlug(slug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Event not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Event retrieved successfully", ToEventResponse(*event))
 }

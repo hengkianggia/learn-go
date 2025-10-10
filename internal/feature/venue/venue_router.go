@@ -3,6 +3,7 @@ package venue
 import (
 	"learn/internal/feature/auth"
 	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -14,7 +15,8 @@ func SetupVenueRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 
 	venueRoutes := rg.Group("/venues")
 	{
-		venueRoutes.GET("/", venueController.GetAllVenues) // Public route
+		venueRoutes.GET("/", venueController.GetAllVenues)
+		venueRoutes.GET("/:slug", venueController.GetVenueBySlug)
 
 		// Authenticated routes
 		authenticated := venueRoutes.Group("/")

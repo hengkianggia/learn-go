@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type GuestRepository interface {
 	CreateGuest(guest *Guest) error
 	GetGuestByID(id uint) (*Guest, error)
+	FindBySlug(slug string) (*Guest, error)
 }
 
 type guestRepository struct {
@@ -22,5 +23,11 @@ func (r *guestRepository) CreateGuest(guest *Guest) error {
 func (r *guestRepository) GetGuestByID(id uint) (*Guest, error) {
 	var guest Guest
 	err := r.db.First(&guest, id).Error
+	return &guest, err
+}
+
+func (r *guestRepository) FindBySlug(slug string) (*Guest, error) {
+	var guest Guest
+	err := r.db.Where("slug = ?", slug).First(&guest).Error
 	return &guest, err
 }

@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type EventRepository interface {
 	CreateEvent(event *Event) error
 	GetEventByID(id uint) (*Event, error)
+	FindBySlug(slug string) (*Event, error)
 	CreateEventGuests(eventGuests []EventGuest) error
 }
 
@@ -23,6 +24,12 @@ func (r *eventRepository) CreateEvent(event *Event) error {
 func (r *eventRepository) GetEventByID(id uint) (*Event, error) {
 	var event Event
 	err := r.db.Preload("Venue").Preload("EventGuests.Guest").First(&event, id).Error
+	return &event, err
+}
+
+func (r *eventRepository) FindBySlug(slug string) (*Event, error) {
+	var event Event
+	err := r.db.Where("slug = ?", slug).First(&event).Error
 	return &event, err
 }
 

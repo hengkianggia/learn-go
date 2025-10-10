@@ -1,6 +1,7 @@
 package venue
 
 import (
+	"errors"
 	"learn/internal/pkg/pagination"
 	"learn/internal/pkg/response"
 	"log/slog"
@@ -13,6 +14,7 @@ import (
 type VenueController interface {
 	CreateVenue(c *gin.Context)
 	GetAllVenues(c *gin.Context)
+	GetVenueBySlug(c *gin.Context)
 }
 
 type venueController struct {
@@ -39,7 +41,7 @@ func (ctrl *venueController) CreateVenue(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusCreated, "Venue created successfully", venue)
+	response.SendSuccess(c, http.StatusCreated, "Venue created successfully", ToVenueResponse(*venue))
 }
 
 func (ctrl *venueController) GetAllVenues(c *gin.Context) {
@@ -50,5 +52,26 @@ func (ctrl *venueController) GetAllVenues(c *gin.Context) {
 		return
 	}
 
+	if len(venues) == 0 {
+		paginatedResponse.Data = make([]VenueResponse, 0)
+	} else {
+		paginatedResponse.Data = ToVenueResponses(venues)
+	}
+
 	response.SendSuccess(c, http.StatusOK, "Venues retrieved successfully", paginatedResponse)
+}
+
+func (ctrl *venueController) GetVenueBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	venue, err := ctrl.venueService.GetVenueBySlug(slug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Venue not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Venue retrieved successfully", ToVenueResponse(*venue))
 }

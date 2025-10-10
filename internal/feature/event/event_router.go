@@ -20,6 +20,7 @@ func SetupEventRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 	eventRoutes := rg.Group("/events")
 	{
 		eventRoutes.GET("/", eventController.GetAllEvents) // Public route
+		eventRoutes.GET("/:slug", eventController.GetEventBySlug)
 
 		// Authenticated routes
 		authenticated := eventRoutes.Group("/")

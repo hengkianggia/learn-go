@@ -2,13 +2,18 @@ package event
 
 import (
 	"errors"
+	"fmt"
 	"learn/internal/feature/guest"
 	"learn/internal/feature/venue"
+	"learn/internal/pkg/slug"
 	"log/slog"
+
+	"gorm.io/gorm"
 )
 
 type EventService interface {
 	CreateEvent(input CreateEventInput) (*Event, error)
+	GetEventBySlug(slug string) (*Event, error)
 }
 
 type eventService struct {
@@ -29,10 +34,28 @@ func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
 		return nil, errors.New("venue not found")
 	}
 
+	baseSlug := slug.GenerateSlug(input.Name)
+	uniqueSlug := baseSlug
+	count := 1
+
+	for {
+		_, err := s.eventRepo.FindBySlug(uniqueSlug)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				break
+			}
+			s.logger.Error("failed to check for existing slug", slog.String("error", err.Error()))
+			return nil, err
+		}
+		uniqueSlug = fmt.Sprintf("%s-%d", baseSlug, count)
+		count++
+	}
+
 	// Create the event first
 	event := Event{
 		VenueID:        input.VenueID,
 		Name:           input.Name,
+		Slug:           uniqueSlug,
 		Description:    input.Description,
 		Date:           input.Date,
 		Time:           input.Time,
@@ -63,7 +86,7 @@ func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
 
 			eventGuests = append(eventGuests, EventGuest{
 				EventID:      event.ID,
-				GuestID:    guestInput.GuestID,
+				GuestID:      guestInput.GuestID,
 				SessionTitle: guestInput.SessionTitle,
 			})
 		}
@@ -83,4 +106,8 @@ func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
 	}
 
 	return createdEvent, nil
+}
+
+func (s *eventService) GetEventBySlug(slug string) (*Event, error) {
+	return s.eventRepo.FindBySlug(slug)
 }

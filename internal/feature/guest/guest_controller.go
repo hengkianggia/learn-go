@@ -1,24 +1,30 @@
 package guest
 
 import (
+	"errors"
+	"learn/internal/pkg/pagination"
 	"learn/internal/pkg/response"
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type GuestController interface {
 	CreateGuest(c *gin.Context)
+	GetAllGuests(c *gin.Context)
+	GetGuestBySlug(c *gin.Context)
 }
 
 type guestController struct {
 	guestService GuestService
 	logger       *slog.Logger
+	db           *gorm.DB
 }
 
-func NewGuestController(guestService GuestService, logger *slog.Logger) GuestController {
-	return &guestController{guestService: guestService, logger: logger}
+func NewGuestController(guestService GuestService, logger *slog.Logger, db *gorm.DB) GuestController {
+	return &guestController{guestService: guestService, logger: logger, db: db}
 }
 
 func (ctrl *guestController) CreateGuest(c *gin.Context) {
@@ -35,5 +41,37 @@ func (ctrl *guestController) CreateGuest(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusCreated, "Guest created successfully", guest)
+	response.SendSuccess(c, http.StatusCreated, "Guest created successfully", ToGuestResponse(*guest))
+}
+
+func (ctrl *guestController) GetAllGuests(c *gin.Context) {
+	var guests []Guest
+	paginatedResponse, err := pagination.Paginate(c, ctrl.db, &Guest{}, &guests)
+	if err != nil {
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	if len(guests) == 0 {
+		paginatedResponse.Data = make([]GuestResponse, 0)
+	} else {
+		paginatedResponse.Data = ToGuestResponses(guests)
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Guests retrieved successfully", paginatedResponse)
+}
+
+func (ctrl *guestController) GetGuestBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	guest, err := ctrl.guestService.GetGuestBySlug(slug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Guest not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Guest retrieved successfully", ToGuestResponse(*guest))
 }
