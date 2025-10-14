@@ -18,17 +18,18 @@ const (
 
 type Event struct {
 	gorm.Model
-	VenueID        uint      `gorm:"not null"`
+	VenueID        uint         `gorm:"not null"`
 	Venue          venue.Venue
-	Name           string    `gorm:"not null"`
-	Slug           string    `gorm:"uniqueIndex;not null"`
+	Name           string       `gorm:"not null"`
+	Slug           string       `gorm:"uniqueIndex;not null"`
 	Description    string
-	Date           time.Time `gorm:"not null"`
-	Time           time.Time `gorm:"not null"`
-	Status         EventStatus `gorm:"default:'DRAFT'"`
+	Date           time.Time    `gorm:"not null"`
+	Time           time.Time    `gorm:"not null"`
+	Status         EventStatus  `gorm:"default:'DRAFT'"`
 	SalesStartDate time.Time
 	SalesEndDate   time.Time
 	EventGuests    []EventGuest `gorm:"foreignKey:EventID"`
+	Prices         []EventPrice `gorm:"foreignKey:EventID"`
 }
 
 type EventGuest struct {
@@ -37,4 +38,11 @@ type EventGuest struct {
 	Event        Event
 	Guest        guest.Guest
 	SessionTitle string
+}
+
+type EventPrice struct {
+	gorm.Model
+	EventID uint   `gorm:"not null"`
+	Name    string `gorm:"not null"` // e.g., "Presale", "VIP"
+	Price   int    `gorm:"not null"`
 }

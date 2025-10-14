@@ -28,7 +28,7 @@ var serveCmd = &cobra.Command{
 		config.ConnectRedis(log)
 
 		// Drop table for development
-		// db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventGuest{})
+		// db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventPrice{}, &event.EventGuest{})
 
 		// Create the user_type enum
 		db.Exec(`DO $$ BEGIN
@@ -45,7 +45,7 @@ var serveCmd = &cobra.Command{
 		END $$;`)
 
 		// Migrate the schema
-		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventGuest{})
+		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventPrice{}, &event.EventGuest{})
 
 		// Seed the database
 		auth.SeedUsers(db, log)

@@ -74,6 +74,24 @@ func (s *eventService) CreateEvent(input CreateEventInput) (*Event, error) {
 		return nil, err
 	}
 
+	// Now, handle the prices
+	if len(input.Prices) > 0 {
+		var eventPrices []EventPrice
+		for _, priceInput := range input.Prices {
+			eventPrices = append(eventPrices, EventPrice{
+				EventID: event.ID,
+				Name:    priceInput.Name,
+				Price:   priceInput.Price,
+			})
+		}
+
+		// Create the prices
+		if err := s.eventRepo.CreateEventPrices(eventPrices); err != nil {
+			s.logger.Error("failed to create event prices", slog.String("error", err.Error()))
+			return nil, err
+		}
+	}
+
 	// Now, handle the guests
 	if len(input.Guests) > 0 {
 		var eventGuests []EventGuest

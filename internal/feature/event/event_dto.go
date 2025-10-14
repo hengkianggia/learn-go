@@ -11,6 +11,11 @@ type GuestInput struct {
 	SessionTitle string `json:"session_title"`
 }
 
+type PriceInput struct {
+	Name  string `json:"name" binding:"required"`
+	Price int    `json:"price" binding:"required"`
+}
+
 type CreateEventInput struct {
 	VenueID        uint         `json:"venue_id" binding:"required"`
 	Name           string       `json:"name" binding:"required"`
@@ -21,11 +26,18 @@ type CreateEventInput struct {
 	SalesStartDate time.Time    `json:"sales_start_date,omitempty"`
 	SalesEndDate   time.Time    `json:"sales_end_date,omitempty"`
 	Guests         []GuestInput `json:"guests"`
+	Prices         []PriceInput `json:"prices"`
 }
 
 type EventGuestResponse struct {
 	Guest        guest.GuestResponse `json:"guest"`
 	SessionTitle string              `json:"session_title"`
+}
+
+type EventPriceResponse struct {
+	ID    uint   `json:"id"`
+	Name  string `json:"name"`
+	Price int    `json:"price"`
 }
 
 type EventResponse struct {
@@ -40,8 +52,15 @@ type EventResponse struct {
 	SalesEndDate   time.Time            `json:"sales_end_date"`
 	Venue          venue.VenueResponse  `json:"venue"`
 	EventGuests    []EventGuestResponse `json:"guests"`
-	CreatedAt      time.Time            `json:"created_at"`
-	UpdatedAt      time.Time            `json:"updated_at"`
+	Prices         []EventPriceResponse `json:"prices"`
+}
+
+func ToEventPriceResponse(price EventPrice) EventPriceResponse {
+	return EventPriceResponse{
+		ID:    price.ID,
+		Name:  price.Name,
+		Price: price.Price,
+	}
 }
 
 func ToEventResponse(event Event) EventResponse {
@@ -51,6 +70,11 @@ func ToEventResponse(event Event) EventResponse {
 			Guest:        guest.ToGuestResponse(eg.Guest),
 			SessionTitle: eg.SessionTitle,
 		})
+	}
+
+	var eventPriceResponses []EventPriceResponse
+	for _, p := range event.Prices {
+		eventPriceResponses = append(eventPriceResponses, ToEventPriceResponse(p))
 	}
 
 	return EventResponse{
@@ -65,8 +89,7 @@ func ToEventResponse(event Event) EventResponse {
 		SalesEndDate:   event.SalesEndDate,
 		Venue:          venue.ToVenueResponse(event.Venue),
 		EventGuests:    eventGuestResponses,
-		CreatedAt:      event.CreatedAt,
-		UpdatedAt:      event.UpdatedAt,
+		Prices:         eventPriceResponses,
 	}
 }
 

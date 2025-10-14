@@ -1,0 +1,94 @@
+
+//// -- LEVEL 1
+//// -- Tables and Columns
+// Creating tables
+Table users {
+  id integer [primary key]
+  name varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  user_type user_type [not null]
+  phone_number varchar
+  is_verified boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table events {
+  id integer [primary key]
+  venue_id integer [not null]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  description text
+  date date [not null]
+  time time [not null]
+  status event_status [default: 'DRAFT']
+  sales_start_date timestamp
+  sales_end_date timestamp
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table venues {
+  id integer [primary key]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  address varchar [not null]
+  city varchar
+  state varchar
+  zip_code varchar
+  capacity integer
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table guests {
+  id integer [primary key]
+  name varchar [not null]
+  slug varchar [unique, not null]
+  bio text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table event_prices {
+  id integer [primary key]
+  event_id integer [not null]
+  name varchar [not null]
+  price integer [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table event_guests {
+  event_id integer [primary key]
+  guest_id integer [primary key]
+  session_title varchar
+}
+
+//// -- LEVEL 2
+//// -- Relations
+Ref: events.venue_id > venues.id
+Ref: event_prices.event_id > events.id
+Ref: event_guests.event_id > events.id
+Ref: event_guests.guest_id > guests.id
+
+//// -- LEVEL 3
+//// -- Enum Definitions
+Enum user_type {
+  organizer
+  attendee
+  administrator
+}
+
+Enum event_status {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}

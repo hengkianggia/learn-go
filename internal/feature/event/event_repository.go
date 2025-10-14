@@ -7,6 +7,7 @@ type EventRepository interface {
 	GetEventByID(id uint) (*Event, error)
 	FindBySlug(slug string) (*Event, error)
 	CreateEventGuests(eventGuests []EventGuest) error
+	CreateEventPrices(eventPrices []EventPrice) error
 }
 
 type eventRepository struct {
@@ -23,16 +24,20 @@ func (r *eventRepository) CreateEvent(event *Event) error {
 
 func (r *eventRepository) GetEventByID(id uint) (*Event, error) {
 	var event Event
-	err := r.db.Preload("Venue").Preload("EventGuests.Guest").First(&event, id).Error
+	err := r.db.Preload("Venue").Preload("EventGuests.Guest").Preload("Prices").First(&event, id).Error
 	return &event, err
 }
 
 func (r *eventRepository) FindBySlug(slug string) (*Event, error) {
 	var event Event
-	err := r.db.Preload("Venue").Preload("EventGuests.Guest").Where("slug = ?", slug).First(&event).Error
+	err := r.db.Preload("Venue").Preload("EventGuests.Guest").Preload("Prices").Where("slug = ?", slug).First(&event).Error
 	return &event, err
 }
 
 func (r *eventRepository) CreateEventGuests(eventGuests []EventGuest) error {
 	return r.db.Create(&eventGuests).Error
+}
+
+func (r *eventRepository) CreateEventPrices(eventPrices []EventPrice) error {
+	return r.db.Create(&eventPrices).Error
 }
