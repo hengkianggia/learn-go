@@ -2,8 +2,8 @@ package ratelimiter
 
 import (
 	"fmt"
-	"learn/internal/feature/auth"
 	redis "learn/internal/config"
+	"learn/internal/model"
 	"net/http"
 	"time"
 
@@ -24,7 +24,7 @@ func RateLimiterMiddleware() gin.HandlerFunc {
 		user, exists := c.Get("user")
 		if exists {
 			// Assuming user is of type auth.User and has a Name field
-			if authUser, ok := user.(auth.User); ok {
+			if authUser, ok := user.(model.User); ok {
 				identifier = authUser.Name
 			} else {
 				// Fallback to IP if user object is not as expected

@@ -3,12 +3,10 @@ package cmd
 import (
 	"learn/internal/config"
 	"learn/internal/database"
-	"learn/internal/feature/auth"
-	"learn/internal/feature/event"
-	"learn/internal/feature/guest"
-	"learn/internal/feature/venue"
+	"learn/internal/model"
 	"learn/internal/pkg/logger"
 	"learn/internal/router"
+	seed "learn/internal/seed"
 	"log/slog"
 
 	"github.com/spf13/cobra"
@@ -28,7 +26,7 @@ var serveCmd = &cobra.Command{
 		config.ConnectRedis(log)
 
 		// Drop table for development
-		// db.Migrator().DropTable(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventPrice{}, &event.EventGuest{})
+		// db.Migrator().DropTable(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{})
 
 		// Create the user_type enum
 		db.Exec(`DO $$ BEGIN
@@ -45,10 +43,10 @@ var serveCmd = &cobra.Command{
 		END $$;`)
 
 		// Migrate the schema
-		db.AutoMigrate(&auth.User{}, &venue.Venue{}, &guest.Guest{}, &event.Event{}, &event.EventPrice{}, &event.EventGuest{})
+		db.AutoMigrate(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{})
 
 		// Seed the database
-		auth.SeedUsers(db, log)
+		seed.SeedUsers(db, log)
 
 		// 3. Setup Router with dependencies
 		r := router.SetupRouter(log, db)

@@ -1,0 +1,69 @@
+package service
+
+import (
+	"errors"
+	"fmt"
+	"learn/internal/dto"
+	"learn/internal/model"
+	"learn/internal/pkg/slug"
+	"learn/internal/repository"
+	"log/slog"
+
+	"gorm.io/gorm"
+)
+
+type VenueService interface {
+	CreateVenue(input dto.CreateVenueInput) (*model.Venue, error)
+	GetVenueBySlug(slug string) (*model.Venue, error)
+}
+
+type venueService struct {
+	venueRepo repository.VenueRepository
+	logger    *slog.Logger
+}
+
+func NewVenueService(venueRepo repository.VenueRepository, logger *slog.Logger) VenueService {
+	return &venueService{venueRepo: venueRepo, logger: logger}
+}
+
+func (s *venueService) CreateVenue(input dto.CreateVenueInput) (*model.Venue, error) {
+	baseSlug := slug.GenerateSlug(input.Name)
+	uniqueSlug := baseSlug
+	count := 1
+
+	for {
+		_, err := s.venueRepo.FindBySlug(uniqueSlug)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				break
+			}
+			s.logger.Error("failed to check for existing slug", slog.String("error", err.Error()))
+			return nil, err
+		}
+		uniqueSlug = fmt.Sprintf("%s-%d", baseSlug, count)
+		count++
+	}
+
+	venue := model.Venue{
+		Name:     input.Name,
+		Slug:     uniqueSlug,
+		Address:  input.Address,
+		City:     input.City,
+		State:    input.State,
+		ZipCode:  input.ZipCode,
+		Capacity: input.Capacity,
+		IsActive: input.IsActive,
+	}
+
+	err := s.venueRepo.CreateVenue(&venue)
+	if err != nil {
+		s.logger.Error("failed to create venue", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	return &venue, nil
+}
+
+func (s *venueService) GetVenueBySlug(slug string) (*model.Venue, error) {
+	return s.venueRepo.FindBySlug(slug)
+}
