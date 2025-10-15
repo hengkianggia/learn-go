@@ -29,6 +29,7 @@ func SetupEventRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 		authenticated.Use(middleware.AuthMiddleware())
 		{
 			authenticated.POST("/", middleware.RoleMiddleware(model.Administrator, model.Organizer), eventController.CreateEvent)
+			authenticated.PATCH("/:slug", middleware.RoleMiddleware(model.Administrator, model.Organizer), eventController.UpdateEvent)
 		}
 	}
 }

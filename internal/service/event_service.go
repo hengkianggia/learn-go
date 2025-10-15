@@ -16,6 +16,7 @@ type EventService interface {
 	CreateEvent(input dto.CreateEventInput) (*model.Event, error)
 	GetEventBySlug(slug string) (*model.Event, error)
 	GetEventsByGuestSlug(guestSlug string) ([]model.Event, error)
+	UpdateEvent(slug string, input dto.UpdateEventInput) (*model.Event, error)
 }
 
 type eventService struct {
@@ -134,4 +135,40 @@ func (s *eventService) GetEventBySlug(slug string) (*model.Event, error) {
 
 func (s *eventService) GetEventsByGuestSlug(guestSlug string) ([]model.Event, error) {
 	return s.eventRepo.GetEventsByGuestSlug(guestSlug)
+}
+
+func (s *eventService) UpdateEvent(slug string, input dto.UpdateEventInput) (*model.Event, error) {
+	event, err := s.eventRepo.FindBySlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Name != nil {
+		event.Name = *input.Name
+	}
+	if input.Description != nil {
+		event.Description = *input.Description
+	}
+	if input.Date != nil {
+		event.Date = *input.Date
+	}
+	if input.Time != nil {
+		event.Time = *input.Time
+	}
+	if input.Status != nil {
+		event.Status = *input.Status
+	}
+	if input.SalesStartDate != nil {
+		event.SalesStartDate = *input.SalesStartDate
+	}
+	if input.SalesEndDate != nil {
+		event.SalesEndDate = *input.SalesEndDate
+	}
+
+	if err := s.eventRepo.UpdateEvent(event); err != nil {
+		s.logger.Error("failed to update event", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	return event, nil
 }

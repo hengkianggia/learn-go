@@ -7,6 +7,11 @@ type CreateGuestInput struct {
 	Bio  string `json:"bio"`
 }
 
+type UpdateGuestInput struct {
+	Name *string `json:"name,omitempty"`
+	Bio  *string `json:"bio,omitempty"`
+}
+
 type GuestResponse struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`

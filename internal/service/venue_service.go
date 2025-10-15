@@ -15,6 +15,7 @@ import (
 type VenueService interface {
 	CreateVenue(input dto.CreateVenueInput) (*model.Venue, error)
 	GetVenueBySlug(slug string) (*model.Venue, error)
+	UpdateVenue(slug string, input dto.UpdateVenueInput) (*model.Venue, error)
 }
 
 type venueService struct {
@@ -66,4 +67,40 @@ func (s *venueService) CreateVenue(input dto.CreateVenueInput) (*model.Venue, er
 
 func (s *venueService) GetVenueBySlug(slug string) (*model.Venue, error) {
 	return s.venueRepo.FindBySlug(slug)
+}
+
+func (s *venueService) UpdateVenue(slug string, input dto.UpdateVenueInput) (*model.Venue, error) {
+	venue, err := s.venueRepo.FindBySlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Name != nil {
+		venue.Name = *input.Name
+	}
+	if input.Address != nil {
+		venue.Address = *input.Address
+	}
+	if input.City != nil {
+		venue.City = *input.City
+	}
+	if input.State != nil {
+		venue.State = *input.State
+	}
+	if input.ZipCode != nil {
+		venue.ZipCode = *input.ZipCode
+	}
+	if input.Capacity != nil {
+		venue.Capacity = *input.Capacity
+	}
+	if input.IsActive != nil {
+		venue.IsActive = *input.IsActive
+	}
+
+	if err := s.venueRepo.UpdateVenue(venue); err != nil {
+		s.logger.Error("failed to update venue", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	return venue, nil
 }

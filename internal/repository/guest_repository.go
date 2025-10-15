@@ -10,6 +10,7 @@ type GuestRepository interface {
 	CreateGuest(guest *model.Guest) error
 	GetGuestByID(id uint) (*model.Guest, error)
 	FindBySlug(slug string) (*model.Guest, error)
+	UpdateGuest(guest *model.Guest) error
 }
 
 type guestRepository struct {
@@ -34,4 +35,8 @@ func (r *guestRepository) FindBySlug(slug string) (*model.Guest, error) {
 	var guest model.Guest
 	err := r.db.Where("slug = ?", slug).First(&guest).Error
 	return &guest, err
+}
+
+func (r *guestRepository) UpdateGuest(guest *model.Guest) error {
+	return r.db.Save(guest).Error
 }

@@ -15,6 +15,7 @@ import (
 type GuestService interface {
 	CreateGuest(input dto.CreateGuestInput) (*model.Guest, error)
 	GetGuestBySlug(slug string) (*model.Guest, error)
+	UpdateGuest(slug string, input dto.UpdateGuestInput) (*model.Guest, error)
 }
 
 type guestService struct {
@@ -61,4 +62,25 @@ func (s *guestService) CreateGuest(input dto.CreateGuestInput) (*model.Guest, er
 
 func (s *guestService) GetGuestBySlug(slug string) (*model.Guest, error) {
 	return s.guestRepo.FindBySlug(slug)
+}
+
+func (s *guestService) UpdateGuest(slug string, input dto.UpdateGuestInput) (*model.Guest, error) {
+	guest, err := s.guestRepo.FindBySlug(slug)
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Name != nil {
+		guest.Name = *input.Name
+	}
+	if input.Bio != nil {
+		guest.Bio = *input.Bio
+	}
+
+	if err := s.guestRepo.UpdateGuest(guest); err != nil {
+		s.logger.Error("failed to update guest", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	return guest, nil
 }

@@ -13,6 +13,7 @@ type EventRepository interface {
 	CreateEventGuests(eventGuests []model.EventGuest) error
 	CreateEventPrices(eventPrices []model.EventPrice) error
 	GetEventsByGuestSlug(guestSlug string) ([]model.Event, error)
+	UpdateEvent(event *model.Event) error
 }
 
 type eventRepository struct {
@@ -51,4 +52,8 @@ func (r *eventRepository) GetEventsByGuestSlug(guestSlug string) ([]model.Event,
 	var events []model.Event
 	err := r.db.Joins("JOIN event_guests ON event_guests.event_id = events.id").Joins("JOIN guests ON guests.id = event_guests.guest_id").Where("guests.slug = ?", guestSlug).Preload("Venue").Preload("EventGuests.Guest").Preload("Prices").Find(&events).Error
 	return events, err
+}
+
+func (r *eventRepository) UpdateEvent(event *model.Event) error {
+	return r.db.Save(event).Error
 }

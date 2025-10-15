@@ -20,6 +20,7 @@ type EventController interface {
 	GetEventBySlug(c *gin.Context)
 	GetEventsByVenueSlug(c *gin.Context)
 	GetEventsByGuestSlug(c *gin.Context)
+	UpdateEvent(c *gin.Context)
 }
 
 type eventController struct {
@@ -118,4 +119,26 @@ func (ctrl *eventController) GetEventsByGuestSlug(c *gin.Context) {
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
+}
+
+func (ctrl *eventController) UpdateEvent(c *gin.Context) {
+	slug := c.Param("slug")
+	var input dto.UpdateEventInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		ctrl.logger.Warn("failed to bind JSON for update event", slog.String("error", err.Error()))
+		response.SendBadRequestError(c, "Invalid input format")
+		return
+	}
+
+	event, err := ctrl.eventService.UpdateEvent(slug, input)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Event not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Event updated successfully", dto.ToEventResponse(*event))
 }

@@ -28,6 +28,16 @@ type CreateEventInput struct {
 	Prices         []PriceInput      `json:"prices"`
 }
 
+type UpdateEventInput struct {
+	Name           *string            `json:"name,omitempty"`
+	Description    *string            `json:"description,omitempty"`
+	Date           *time.Time         `json:"date,omitempty"`
+	Time           *time.Time         `json:"time,omitempty"`
+	Status         *model.EventStatus `json:"status,omitempty"`
+	SalesStartDate *time.Time         `json:"sales_start_date,omitempty"`
+	SalesEndDate   *time.Time         `json:"sales_end_date,omitempty"`
+}
+
 type EventGuestResponse struct {
 	Guest        GuestResponse `json:"guest"`
 	SessionTitle string        `json:"session_title"`

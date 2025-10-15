@@ -18,6 +18,7 @@ type GuestController interface {
 	CreateGuest(c *gin.Context)
 	GetAllGuests(c *gin.Context)
 	GetGuestBySlug(c *gin.Context)
+	UpdateGuest(c *gin.Context)
 }
 
 type guestController struct {
@@ -78,4 +79,26 @@ func (ctrl *guestController) GetGuestBySlug(c *gin.Context) {
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Guest retrieved successfully", dto.ToGuestResponse(*guest))
+}
+
+func (ctrl *guestController) UpdateGuest(c *gin.Context) {
+	slug := c.Param("slug")
+	var input dto.UpdateGuestInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		ctrl.logger.Warn("failed to bind JSON for update guest", slog.String("error", err.Error()))
+		response.SendBadRequestError(c, "Invalid input format")
+		return
+	}
+
+	guest, err := ctrl.guestService.UpdateGuest(slug, input)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Guest not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Guest updated successfully", dto.ToGuestResponse(*guest))
 }

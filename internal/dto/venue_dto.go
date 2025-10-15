@@ -12,6 +12,16 @@ type CreateVenueInput struct {
 	IsActive bool   `json:"is_active,omitempty"`
 }
 
+type UpdateVenueInput struct {
+	Name     *string `json:"name,omitempty"`
+	Address  *string `json:"address,omitempty"`
+	City     *string `json:"city,omitempty"`
+	State    *string `json:"state,omitempty"`
+	ZipCode  *string `json:"zip_code,omitempty"`
+	Capacity *int    `json:"capacity,omitempty"`
+	IsActive *bool   `json:"is_active,omitempty"`
+}
+
 type VenueResponse struct {
 	ID       uint   `json:"id"`
 	Name     string `json:"name"`

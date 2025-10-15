@@ -18,7 +18,7 @@ type VenueController interface {
 	CreateVenue(c *gin.Context)
 	GetAllVenues(c *gin.Context)
 	GetVenueBySlug(c *gin.Context)
-	GetEventByVenueSlug(c *gin.Context)
+	UpdateVenue(c *gin.Context)
 }
 
 type venueController struct {
@@ -80,9 +80,16 @@ func (ctrl *venueController) GetVenueBySlug(c *gin.Context) {
 	response.SendSuccess(c, http.StatusOK, "Venue retrieved successfully", dto.ToVenueResponse(*venue))
 }
 
-func (ctrl *venueController) GetEventByVenueSlug(c *gin.Context) {
+func (ctrl *venueController) UpdateVenue(c *gin.Context) {
 	slug := c.Param("slug")
-	venue, err := ctrl.venueService.GetVenueBySlug(slug)
+	var input dto.UpdateVenueInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		ctrl.logger.Warn("failed to bind JSON for update venue", slog.String("error", err.Error()))
+		response.SendBadRequestError(c, "Invalid input format")
+		return
+	}
+
+	venue, err := ctrl.venueService.UpdateVenue(slug, input)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.SendNotFoundError(c, "Venue not found")
@@ -92,5 +99,5 @@ func (ctrl *venueController) GetEventByVenueSlug(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusOK, "Venue retrieved successfully", dto.ToVenueResponse(*venue))
+	response.SendSuccess(c, http.StatusOK, "Venue updated successfully", dto.ToVenueResponse(*venue))
 }
