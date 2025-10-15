@@ -228,6 +228,25 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get Events by Venue Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/venues/my-awesome-venue/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "venues",
+                "my-awesome-venue",
+                "events"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -290,6 +309,25 @@
               "path": [
                 "guests",
                 "john-doe"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Events by Guest Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/guests/john-doe/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guests",
+                "john-doe",
+                "events"
               ]
             }
           },

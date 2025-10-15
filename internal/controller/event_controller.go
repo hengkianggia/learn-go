@@ -18,6 +18,8 @@ type EventController interface {
 	CreateEvent(c *gin.Context)
 	GetAllEvents(c *gin.Context)
 	GetEventBySlug(c *gin.Context)
+	GetEventsByVenueSlug(c *gin.Context)
+	GetEventsByGuestSlug(c *gin.Context)
 }
 
 type eventController struct {
@@ -78,4 +80,42 @@ func (ctrl *eventController) GetEventBySlug(c *gin.Context) {
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Event retrieved successfully", dto.ToEventResponse(*event))
+}
+
+func (ctrl *eventController) GetEventsByVenueSlug(c *gin.Context) {
+	slug := c.Param("slug")
+	var events []model.Event
+	db := ctrl.db.Joins("JOIN venues ON venues.id = events.venue_id").Where("venues.slug = ?", slug).Preload("Venue").Preload("EventGuests.Guest").Preload("Prices")
+	paginatedResult, err := pagination.Paginate(c, db, &model.Event{}, &events)
+	if err != nil {
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	if len(events) == 0 {
+		paginatedResult.Data = make([]dto.EventResponse, 0)
+	} else {
+		paginatedResult.Data = dto.ToEventResponsesByVenue(events)
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
+}
+
+func (ctrl *eventController) GetEventsByGuestSlug(c *gin.Context) {
+	slug := c.Param("slug")
+	var events []model.Event
+	db := ctrl.db.Joins("JOIN event_guests ON event_guests.event_id = events.id").Joins("JOIN guests ON guests.id = event_guests.guest_id").Where("guests.slug = ?", slug).Preload("Venue").Preload("EventGuests.Guest").Preload("Prices")
+	paginatedResult, err := pagination.Paginate(c, db, &model.Event{}, &events)
+	if err != nil {
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	if len(events) == 0 {
+		paginatedResult.Data = make([]dto.EventResponse, 0)
+	} else {
+		paginatedResult.Data = dto.ToEventResponses(events)
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
 }

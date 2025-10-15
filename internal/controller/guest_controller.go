@@ -67,6 +67,7 @@ func (ctrl *guestController) GetAllGuests(c *gin.Context) {
 func (ctrl *guestController) GetGuestBySlug(c *gin.Context) {
 	slug := c.Param("slug")
 	guest, err := ctrl.guestService.GetGuestBySlug(slug)
+
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.SendNotFoundError(c, "Guest not found")

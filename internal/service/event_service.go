@@ -15,6 +15,7 @@ import (
 type EventService interface {
 	CreateEvent(input dto.CreateEventInput) (*model.Event, error)
 	GetEventBySlug(slug string) (*model.Event, error)
+	GetEventsByGuestSlug(guestSlug string) ([]model.Event, error)
 }
 
 type eventService struct {
@@ -129,4 +130,8 @@ func (s *eventService) CreateEvent(input dto.CreateEventInput) (*model.Event, er
 
 func (s *eventService) GetEventBySlug(slug string) (*model.Event, error) {
 	return s.eventRepo.FindBySlug(slug)
+}
+
+func (s *eventService) GetEventsByGuestSlug(guestSlug string) ([]model.Event, error) {
+	return s.eventRepo.GetEventsByGuestSlug(guestSlug)
 }

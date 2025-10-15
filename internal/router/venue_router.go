@@ -17,10 +17,15 @@ func SetupVenueRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 	venueService := service.NewVenueService(venueRepo, logger)
 	venueController := controller.NewVenueController(venueService, logger, db)
 
+	eventRepo := repository.NewEventRepository(db)
+	eventService := service.NewEventService(eventRepo, venueRepo, nil, logger)
+	eventController := controller.NewEventController(eventService, logger, db)
+
 	venueRoutes := rg.Group("/venues")
 	{
 		venueRoutes.GET("/", venueController.GetAllVenues)
 		venueRoutes.GET("/:slug", venueController.GetVenueBySlug)
+		venueRoutes.GET("/:slug/events", eventController.GetEventsByVenueSlug)
 
 		// Authenticated routes
 		authenticated := venueRoutes.Group("/")

@@ -18,6 +18,7 @@ type VenueController interface {
 	CreateVenue(c *gin.Context)
 	GetAllVenues(c *gin.Context)
 	GetVenueBySlug(c *gin.Context)
+	GetEventByVenueSlug(c *gin.Context)
 }
 
 type venueController struct {
@@ -65,6 +66,21 @@ func (ctrl *venueController) GetAllVenues(c *gin.Context) {
 }
 
 func (ctrl *venueController) GetVenueBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	venue, err := ctrl.venueService.GetVenueBySlug(slug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Venue not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Venue retrieved successfully", dto.ToVenueResponse(*venue))
+}
+
+func (ctrl *venueController) GetEventByVenueSlug(c *gin.Context) {
 	slug := c.Param("slug")
 	venue, err := ctrl.venueService.GetVenueBySlug(slug)
 	if err != nil {

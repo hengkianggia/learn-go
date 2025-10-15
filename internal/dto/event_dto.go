@@ -39,7 +39,7 @@ type EventPriceResponse struct {
 	Price int    `json:"price"`
 }
 
-type EventResponse struct {
+type EventResponseBase struct {
 	ID             uint                 `json:"id"`
 	Slug           string               `json:"slug"`
 	Name           string               `json:"name"`
@@ -49,9 +49,17 @@ type EventResponse struct {
 	Status         model.EventStatus    `json:"status"`
 	SalesStartDate time.Time            `json:"sales_start_date"`
 	SalesEndDate   time.Time            `json:"sales_end_date"`
-	Venue          VenueResponse        `json:"venue"`
 	EventGuests    []EventGuestResponse `json:"guests"`
 	Prices         []EventPriceResponse `json:"prices"`
+}
+
+type EventResponse struct {
+	EventResponseBase
+	Venue VenueResponse `json:"venue"`
+}
+
+type EventResponseByVenue struct {
+	EventResponseBase
 }
 
 func ToEventPriceResponse(price model.EventPrice) EventPriceResponse {
@@ -62,7 +70,7 @@ func ToEventPriceResponse(price model.EventPrice) EventPriceResponse {
 	}
 }
 
-func ToEventResponse(event model.Event) EventResponse {
+func toEventResponseBase(event model.Event) EventResponseBase {
 	var eventGuestResponses []EventGuestResponse
 	for _, eg := range event.EventGuests {
 		eventGuestResponses = append(eventGuestResponses, EventGuestResponse{
@@ -76,7 +84,7 @@ func ToEventResponse(event model.Event) EventResponse {
 		eventPriceResponses = append(eventPriceResponses, ToEventPriceResponse(p))
 	}
 
-	return EventResponse{
+	return EventResponseBase{
 		ID:             event.ID,
 		Slug:           event.Slug,
 		Name:           event.Name,
@@ -86,9 +94,15 @@ func ToEventResponse(event model.Event) EventResponse {
 		Status:         event.Status,
 		SalesStartDate: event.SalesStartDate,
 		SalesEndDate:   event.SalesEndDate,
-		Venue:          ToVenueResponse(event.Venue),
 		EventGuests:    eventGuestResponses,
 		Prices:         eventPriceResponses,
+	}
+}
+
+func ToEventResponse(event model.Event) EventResponse {
+	return EventResponse{
+		EventResponseBase: toEventResponseBase(event),
+		Venue:             ToVenueResponse(event.Venue),
 	}
 }
 
@@ -96,6 +110,20 @@ func ToEventResponses(events []model.Event) []EventResponse {
 	var responses []EventResponse
 	for _, event := range events {
 		responses = append(responses, ToEventResponse(event))
+	}
+	return responses
+}
+
+func ToEventResponseByVenue(event model.Event) EventResponseByVenue {
+	return EventResponseByVenue{
+		EventResponseBase: toEventResponseBase(event),
+	}
+}
+
+func ToEventResponsesByVenue(events []model.Event) []EventResponseByVenue {
+	var responses []EventResponseByVenue
+	for _, event := range events {
+		responses = append(responses, ToEventResponseByVenue(event))
 	}
 	return responses
 }
