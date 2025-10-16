@@ -43,4 +43,5 @@ type EventPrice struct {
 	EventID uint   `gorm:"not null"`
 	Name    string `gorm:"not null"` // e.g., "Presale", "VIP"
 	Price   int    `gorm:"not null"`
+	Quota   int    `gorm:"not null"`
 }

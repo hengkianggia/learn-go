@@ -108,7 +108,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"venue_id\": 1,\n  \"name\": \"My Awesome Event\",\n  \"description\": \"This is a description of my awesome event.\",\n  \"date\": \"2025-12-25T00:00:00Z\",\n  \"time\": \"2025-12-25T18:00:00Z\",\n  \"status\": \"DRAFT\",\n  \"sales_start_date\": \"2025-12-01T00:00:00Z\",\n  \"sales_end_date\": \"2025-12-24T00:00:00Z\",\n  \"guests\": [\n    {\n      \"guest_id\": 1,\n      \"session_title\": \"Introduction to Go\"\n    },\n    {\n      \"guest_id\": 2,\n      \"session_title\": \"Building APIs with Gin\"\n    }\n  ],\n  \"prices\": [\n    {\n      \"name\": \"Presale\",\n      \"price\": 100000\n    },\n    {\n      \"name\": \"Regular\",\n      \"price\": 150000\n    }\n  ]\n}",
+              "raw": "{\n  \"venue_id\": 1,\n  \"name\": \"My Awesome Event\",\n  \"description\": \"This is a description of my awesome event.\",\n  \"date\": \"2025-12-25T00:00:00Z\",\n  \"time\": \"2025-12-25T18:00:00Z\",\n  \"status\": \"DRAFT\",\n  \"sales_start_date\": \"2025-12-01T00:00:00Z\",\n  \"sales_end_date\": \"2025-12-24T00:00:00Z\",\n  \"guests\": [\n    {\n      \"guest_id\": 1,\n      \"session_title\": \"Introduction to Go\"\n    },\n    {\n      \"guest_id\": 2,\n      \"session_title\": \"Building APIs with Gin\"\n    }\n  ],\n  \"prices\": [\n    {\n      \"name\": \"Presale\",\n      \"price\": 100000,\n      \"quota\": 100\n    },\n    {\n      \"name\": \"Regular\",\n      \"price\": 150000,\n      \"quota\": 200\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -188,7 +188,45 @@
               ]
             }
           },
-          "response": []
+          "response": [
+            {
+              "name": "Invalid Status Update",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"INVALID_STATUS\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/events/my-awesome-event",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "events",
+                    "my-awesome-event"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"invalid event status: INVALID_STATUS\"\n}"
+            }
+          ]
         }
       ]
     },

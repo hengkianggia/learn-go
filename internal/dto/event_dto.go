@@ -13,6 +13,7 @@ type GuestInput struct {
 type PriceInput struct {
 	Name  string `json:"name" binding:"required"`
 	Price int    `json:"price" binding:"required"`
+	Quota int    `json:"quota" binding:"required"`
 }
 
 type CreateEventInput struct {
@@ -47,6 +48,7 @@ type EventPriceResponse struct {
 	ID    uint   `json:"id"`
 	Name  string `json:"name"`
 	Price int    `json:"price"`
+	Quota int    `json:"quota"`
 }
 
 type EventResponseBase struct {
@@ -77,6 +79,7 @@ func ToEventPriceResponse(price model.EventPrice) EventPriceResponse {
 		ID:    price.ID,
 		Name:  price.Name,
 		Price: price.Price,
+		Quota: price.Quota,
 	}
 }
 
