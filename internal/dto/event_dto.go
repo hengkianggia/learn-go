@@ -20,8 +20,7 @@ type CreateEventInput struct {
 	VenueID        uint              `json:"venue_id" binding:"required"`
 	Name           string            `json:"name" binding:"required"`
 	Description    string            `json:"description"`
-	Date           time.Time         `json:"date" binding:"required"`
-	Time           time.Time         `json:"time" binding:"required"`
+	EventStartAt   time.Time         `json:"event_start_at" binding:"required"`
 	Status         model.EventStatus `json:"status,omitempty"`
 	SalesStartDate time.Time         `json:"sales_start_date,omitempty"`
 	SalesEndDate   time.Time         `json:"sales_end_date,omitempty"`
@@ -32,7 +31,7 @@ type CreateEventInput struct {
 type UpdateEventInput struct {
 	Name           *string            `json:"name,omitempty"`
 	Description    *string            `json:"description,omitempty"`
-	Date           *time.Time         `json:"date,omitempty"`
+	EventStartAt   *time.Time         `json:"event_start_at,omitempty"`
 	Time           *time.Time         `json:"time,omitempty"`
 	Status         *model.EventStatus `json:"status,omitempty"`
 	SalesStartDate *time.Time         `json:"sales_start_date,omitempty"`
@@ -56,8 +55,7 @@ type EventResponseBase struct {
 	Slug           string               `json:"slug"`
 	Name           string               `json:"name"`
 	Description    string               `json:"description"`
-	Date           time.Time            `json:"date"`
-	Time           time.Time            `json:"time"`
+	EventStartAt   time.Time            `json:"event_start_at"`
 	Status         model.EventStatus    `json:"status"`
 	SalesStartDate time.Time            `json:"sales_start_date"`
 	SalesEndDate   time.Time            `json:"sales_end_date"`
@@ -102,8 +100,7 @@ func toEventResponseBase(event model.Event) EventResponseBase {
 		Slug:           event.Slug,
 		Name:           event.Name,
 		Description:    event.Description,
-		Date:           event.Date,
-		Time:           event.Time,
+		EventStartAt:   event.EventStartAt,
 		Status:         event.Status,
 		SalesStartDate: event.SalesStartDate,
 		SalesEndDate:   event.SalesEndDate,

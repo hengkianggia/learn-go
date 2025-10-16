@@ -60,8 +60,7 @@ func (s *eventService) CreateEvent(input dto.CreateEventInput) (*model.Event, er
 		Name:           input.Name,
 		Slug:           uniqueSlug,
 		Description:    input.Description,
-		Date:           input.Date,
-		Time:           input.Time,
+		EventStartAt:   input.EventStartAt,
 		Status:         input.Status,
 		SalesStartDate: input.SalesStartDate,
 		SalesEndDate:   input.SalesEndDate,
@@ -150,12 +149,10 @@ func (s *eventService) UpdateEvent(slug string, input dto.UpdateEventInput) (*mo
 	if input.Description != nil {
 		event.Description = *input.Description
 	}
-	if input.Date != nil {
-		event.Date = *input.Date
+	if input.EventStartAt != nil {
+		event.EventStartAt = *input.EventStartAt
 	}
-	if input.Time != nil {
-		event.Time = *input.Time
-	}
+
 	if input.Status != nil {
 		if err := input.Status.IsValid(); err != nil {
 			return nil, err
