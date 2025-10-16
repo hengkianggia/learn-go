@@ -15,12 +15,14 @@ const (
 
 type User struct {
 	gorm.Model
-	Name        string   `gorm:"not null"`
-	Email       string   `gorm:"unique;not null"`
-	Password    string   `gorm:"not null"`
-	UserType    UserType `gorm:"type:user_type;not null"`
-	PhoneNumber string
-	IsVerified  bool `gorm:"default:false"`
+	Name           string `gorm:"not null"`
+	Email          string `gorm:"unique;not null"`
+	Password       string `gorm:"not null"`
+	PhoneNumber    string
+	ProfilePicture string
+	UserType       UserType `gorm:"default:'attendee'"`
+	IsVerified     bool     `gorm:"default:false"`
+	Orders         []Order
 }
 
 // BeforeSave is a GORM hook that hashes the user's password before saving.
