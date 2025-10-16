@@ -1,437 +1,380 @@
 {
-  "info": {
-    "name": "Learn Go API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Auth",
-      "item": [
-        {
-          "name": "Register",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"confirm_password\": \"password123\",\n  \"phone_number\": \"1234567890\",\n  \"user_type\": \"attendee\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "register"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "logout"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Profile",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
+    "info": {
+        "name": "Learn Go API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    {
-      "name": "Events",
-      "item": [
+    "item": [
         {
-          "name": "Create Event",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"venue_id\": 1,\n  \"name\": \"My Awesome Event\",\n  \"description\": \"This is a description of my awesome event.\",\n  \"date\": \"2025-12-25T00:00:00Z\",\n  \"time\": \"2025-12-25T18:00:00Z\",\n  \"status\": \"DRAFT\",\n  \"sales_start_date\": \"2025-12-01T00:00:00Z\",\n  \"sales_end_date\": \"2025-12-24T00:00:00Z\",\n  \"guests\": [\n    {\n      \"guest_id\": 1,\n      \"session_title\": \"Introduction to Go\"\n    },\n    {\n      \"guest_id\": 2,\n      \"session_title\": \"Building APIs with Gin\"\n    }\n  ],\n  \"prices\": [\n    {\n      \"name\": \"Presale\",\n      \"price\": 100000,\n      \"quota\": 100\n    },\n    {\n      \"name\": \"Regular\",\n      \"price\": 150000,\n      \"quota\": 200\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/events",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events"
-              ]
-            },
-            "description": "Creates a new event.\n\n**Prerequisites:**\n1. You must be authenticated as an **organizer** or **administrator**.\n2. You must have the `venue_id` of an existing venue.\n3. You must have the `guest_id` of existing guests. You can create new guests using the \"Create Guest\" request in the \"Guests\" folder.\n\n**Request Body:**\nThe `guests` field is an array of objects, where each object contains a `guest_id` and a `session_title`.\nThe `prices` field is an array of objects, where each object contains a `name` and a `price`."
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Events",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/events",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Event by Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/events/my-awesome-event",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events",
-                "my-awesome-event"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Event",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"A new description for the event.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/events/my-awesome-event",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events",
-                "my-awesome-event"
-              ]
-            }
-          },
-          "response": [
-            {
-              "name": "Invalid Status Update",
-              "originalRequest": {
-                "method": "PATCH",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"status\": \"INVALID_STATUS\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/events/my-awesome-event",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "events",
-                    "my-awesome-event"
-                  ]
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "_postman_previewlanguage": "json",
-              "header": [
+            "name": "Auth",
+            "item": [
                 {
-                  "key": "Content-Type",
-                  "value": "application/json"
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"confirm_password\": \"password123\",\n  \"phone_number\": \"1234567890\",\n  \"user_type\": \"attendee\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/register",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["auth", "register"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/login",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["auth", "login"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/auth/logout",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["auth", "logout"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/profile",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["profile"]
+                        }
+                    },
+                    "response": []
                 }
-              ],
-              "cookie": [],
-              "body": "{\n  \"error\": \"invalid event status: INVALID_STATUS\"\n}"
-            }
-          ]
+            ]
+        },
+        {
+            "name": "Events",
+            "item": [
+                {
+                    "name": "Create Event",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"venue_id\": 1,\n  \"name\": \"My Awesome Event\",\n  \"description\": \"This is a description of my awesome event.\",\n  \"date\": \"2025-12-25T00:00:00Z\",\n  \"time\": \"2025-12-25T18:00:00Z\",\n  \"status\": \"DRAFT\",\n  \"sales_start_date\": \"2025-12-01T00:00:00Z\",\n  \"sales_end_date\": \"2025-12-24T00:00:00Z\",\n  \"guests\": [\n    {\n      \"guest_id\": 1,\n      \"session_title\": \"Introduction to Go\"\n    },\n    {\n      \"guest_id\": 2,\n      \"session_title\": \"Building APIs with Gin\"\n    }\n  ],\n  \"prices\": [\n    {\n      \"name\": \"Presale\",\n      \"price\": 100000,\n      \"quota\": 100\n    },\n    {\n      \"name\": \"Regular\",\n      \"price\": 150000,\n      \"quota\": 200\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/events",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["events"]
+                        },
+                        "description": "Creates a new event.\n\n**Prerequisites:**\n1. You must be authenticated as an **organizer** or **administrator**.\n2. You must have the `venue_id` of an existing venue.\n3. You must have the `guest_id` of existing guests. You can create new guests using the \"Create Guest\" request in the \"Guests\" folder.\n\n**Request Body:**\nThe `guests` field is an array of objects, where each object contains a `guest_id` and a `session_title`.\nThe `prices` field is an array of objects, where each object contains a `name` and a `price`."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Events",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/events",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["events"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Event by Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/events/my-awesome-event",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["events", "my-awesome-event"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Event",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"description\": \"A new description for the event.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/events/my-awesome-event",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["events", "my-awesome-event"]
+                        }
+                    },
+                    "response": [
+                        {
+                            "name": "Invalid Status Update",
+                            "originalRequest": {
+                                "method": "PATCH",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"status\": \"INVALID_STATUS\"\n}",
+                                    "options": {
+                                        "raw": {
+                                            "language": "json"
+                                        }
+                                    }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/events/my-awesome-event",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["events", "my-awesome-event"]
+                                }
+                            },
+                            "status": "Bad Request",
+                            "code": 400,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n  \"error\": \"invalid event status: INVALID_STATUS\"\n}"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Venues",
+            "item": [
+                {
+                    "name": "Create Venue",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"My Awesome Venue\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Anytown\",\n  \"state\": \"CA\",\n  \"zip_code\": \"12345\",\n  \"capacity\": 100,\n  \"is_active\": true\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/venues",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["venues"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Venues",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/venues",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["venues"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Venue by Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/venues/my-awesome-venue",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["venues", "my-awesome-venue"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Events by Venue Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/venues/my-awesome-venue/events",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["venues", "my-awesome-venue", "events"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Venue",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"capacity\": 200\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/venues/my-awesome-venue",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["venues", "my-awesome-venue"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Guests",
+            "item": [
+                {
+                    "name": "Create Guest",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"John Doe\",\n  \"bio\": \"John Doe is a software engineer with 10 years of experience.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/guests",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["guests"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Guests",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/guests",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["guests"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Guest by Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/guests/john-doe",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["guests", "john-doe"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Events by Guest Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/guests/john-doe/events",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["guests", "john-doe", "events"]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Orders",
+            "item": [
+                {
+                    "name": "Create Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"event_id\": \"1\",\n  \"tickets_ordered\": [\n    {\n      \"price_id\": \"1\",\n      \"quantity\": 2\n    }\n  ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/orders",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["orders"]
+                        },
+                        "description": "Creates a new order for an event. Requires authentication as an 'attendee'."
+                    },
+                    "response": []
+                }
+            ]
         }
-      ]
-    },
-    {
-      "name": "Venues",
-      "item": [
+    ],
+    "variable": [
         {
-          "name": "Create Venue",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"My Awesome Venue\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Anytown\",\n  \"state\": \"CA\",\n  \"zip_code\": \"12345\",\n  \"capacity\": 100,\n  \"is_active\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/venues",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "venues"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Venues",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/venues",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "venues"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Venue by Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/venues/my-awesome-venue",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "venues",
-                "my-awesome-venue"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Events by Venue Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/venues/my-awesome-venue/events",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "venues",
-                "my-awesome-venue",
-                "events"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Venue",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"capacity\": 200\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/venues/my-awesome-venue",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "venues",
-                "my-awesome-venue"
-              ]
-            }
-          },
-          "response": []
+            "key": "baseUrl",
+            "value": "http://localhost:8080/api/v1"
         }
-      ]
-    },
-    {
-      "name": "Guests",
-      "item": [
-        {
-          "name": "Create Guest",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"bio\": \"John Doe is a software engineer with 10 years of experience.\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/guests",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Guests",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/guests",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Guest by Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/guests/john-doe",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests",
-                "john-doe"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Events by Guest Slug",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/guests/john-doe/events",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests",
-                "john-doe",
-                "events"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080/api/v1"
-    }
-  ]
+    ]
 }
