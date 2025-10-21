@@ -4,6 +4,7 @@ import (
 	"errors"
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/random"
 	"learn/internal/repository"
 	"log/slog"
 	"strconv"
@@ -85,6 +86,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 				EventPriceID: price.ID,
 				Price:        float64(price.Price),
 				Type:         price.Name,
+				TicketCode:   random.String(10),
 			})
 		}
 	}
