@@ -64,7 +64,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 		return nil, errors.New("one or more prices not found")
 	}
 
-	var totalPrice float64
+	var totalPrice int64
 	var tickets []model.Ticket
 	priceUpdates := make(map[uint]int)
 
@@ -78,13 +78,13 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 			return nil, errors.New("not enough quota for ticket")
 		}
 
-		totalPrice += float64(price.Price * quantity)
+		totalPrice += price.Price * int64(quantity)
 		priceUpdates[price.ID] = quantity
 
 		for i := 0; i < quantity; i++ {
 			tickets = append(tickets, model.Ticket{
 				EventPriceID: price.ID,
-				Price:        float64(price.Price),
+				Price:        price.Price,
 				Type:         price.Name,
 				TicketCode:   random.String(10),
 			})

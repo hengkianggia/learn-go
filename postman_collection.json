@@ -339,6 +339,28 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "Update Guest",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"bio\": \"A new bio for the guest\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/guests/john-doe",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["guests", "john-doe"]
+                        }
+                    },
+                    "response": []
                 }
             ]
         },
@@ -365,6 +387,94 @@
                             "path": ["orders"]
                         },
                         "description": "Creates a new order for an event. Requires authentication as an 'attendee'."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Payments",
+            "item": [
+                {
+                    "name": "Create Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"order_id\": 1,\n  \"payment_method\": \"CREDIT_CARD\",\n  \"transaction_id\": \"YOUR_TRANSACTION_ID\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/payments",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["payments"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Payment By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/payments/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["payments", "1"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Payment By Order ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/payments/order/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["payments", "order", "1"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Payment",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"PAID\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/payments/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["payments", "1"]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Payment",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/payments/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["payments", "1"]
+                        }
                     },
                     "response": []
                 }

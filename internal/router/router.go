@@ -40,7 +40,9 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
 		SetupGuestRoutes(apiV1, db, logger)
 		SetupEventRoutes(apiV1, db, logger)
 		SetupOrderRoutes(apiV1, db, logger)
+		SetupPaymentRoutes(apiV1, db, logger)
 	}
 
 	return r
 }
+

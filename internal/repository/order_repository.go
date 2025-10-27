@@ -11,6 +11,7 @@ type OrderRepository interface {
 	CreateOrderInTransaction(order *model.Order, tickets []model.Ticket, priceUpdates map[uint]int) error
 	GetEventPricesByIDs(priceIDs []uint) ([]model.EventPrice, error)
 	GetEventByID(id uint) (*model.Event, error)
+	GetOrderByID(orderID uint) (*model.Order, error)
 }
 
 type orderRepository struct {
@@ -63,4 +64,12 @@ func (r *orderRepository) GetEventByID(id uint) (*model.Event, error) {
 	var event model.Event
 	err := r.db.First(&event, id).Error
 	return &event, err
+}
+
+func (r *orderRepository) GetOrderByID(orderID uint) (*model.Order, error) {
+	var order model.Order
+	if err := r.db.First(&order, orderID).Error; err != nil {
+		return nil, err
+	}
+	return &order, nil
 }

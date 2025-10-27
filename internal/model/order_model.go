@@ -16,11 +16,10 @@ const (
 
 type Order struct {
 	gorm.Model
-	UserID       uint        `gorm:"not null"`
-	User         User
-	TotalPrice   float64     `gorm:"not null"`
-	Status       OrderStatus `gorm:"not null;default:'PENDING'"`
-	PaymentDue   time.Time
-	Tickets      []Ticket
-	Payments     []Payment
+	UserID     uint `gorm:"not null"`
+	User       User
+	TotalPrice int64       `gorm:"not null"`
+	Status     OrderStatus `gorm:"not null;default:'PENDING'"`
+	PaymentDue time.Time
+	Tickets    []Ticket
 }

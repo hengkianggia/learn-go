@@ -23,11 +23,11 @@ type TicketResponse struct {
 }
 
 type OrderResponse struct {
-	ID         uint             `json:"id"`
-	TotalPrice float64          `json:"total_price"`
+	ID         uint              `json:"id"`
+	TotalPrice float64           `json:"total_price"`
 	Status     model.OrderStatus `json:"status"`
-	PaymentDue time.Time        `json:"payment_due"`
-	Tickets    []TicketResponse `json:"tickets"`
+	PaymentDue time.Time         `json:"payment_due"`
+	Tickets    []TicketResponse  `json:"tickets"`
 }
 
 func ToOrderResponse(order model.Order) OrderResponse {
@@ -35,7 +35,7 @@ func ToOrderResponse(order model.Order) OrderResponse {
 	for _, ticket := range order.Tickets {
 		ticketResponses = append(ticketResponses, TicketResponse{
 			ID:         ticket.ID,
-			Price:      ticket.Price,
+			Price:      float64(ticket.Price),
 			Type:       ticket.Type,
 			TicketCode: ticket.TicketCode,
 		})
@@ -43,7 +43,7 @@ func ToOrderResponse(order model.Order) OrderResponse {
 
 	return OrderResponse{
 		ID:         order.ID,
-		TotalPrice: order.TotalPrice,
+		TotalPrice: float64(order.TotalPrice),
 		Status:     order.Status,
 		PaymentDue: order.PaymentDue,
 		Tickets:    ticketResponses,

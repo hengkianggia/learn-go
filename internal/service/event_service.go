@@ -83,7 +83,7 @@ func (s *eventService) CreateEvent(input dto.CreateEventInput) (*model.Event, er
 			eventPrices = append(eventPrices, model.EventPrice{
 				EventID: event.ID,
 				Name:    priceInput.Name,
-				Price:   priceInput.Price,
+				Price:   int64(priceInput.Price),
 				Quota:   priceInput.Quota,
 			})
 		}

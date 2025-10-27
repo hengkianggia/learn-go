@@ -7,7 +7,7 @@ type Ticket struct {
 	EventPriceID uint   `gorm:"not null"`
 	EventPrice   EventPrice
 	OrderID      uint   `gorm:"not null"`
-	Price        float64 `gorm:"not null"`
+	Price        int64 `gorm:"not null"`
 	Type         string `gorm:"not null"`
 	SeatNumber   string
 	TicketCode   string `gorm:"not null;unique"`

@@ -76,7 +76,7 @@ func ToEventPriceResponse(price model.EventPrice) EventPriceResponse {
 	return EventPriceResponse{
 		ID:    price.ID,
 		Name:  price.Name,
-		Price: price.Price,
+		Price: int(price.Price),
 		Quota: price.Quota,
 	}
 }

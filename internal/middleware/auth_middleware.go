@@ -22,8 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString, err := c.Cookie("jwt_token")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
-			c.Abort()
+			response.SendUnauthorizedError(c, "Authentication required")
 			return
 		}
 
@@ -35,19 +34,16 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		if err != nil {
 			if errors.Is(err, jwt.ErrSignatureInvalid) {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token signature"})
-				c.Abort()
+				response.SendUnauthorizedError(c, "Invalid token signature")
 				return
 			}
 
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
-			c.Abort()
+			response.SendBadRequestError(c, "Invalid token")
 			return
 		}
 
 		if !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-			c.Abort()
+			response.SendUnauthorizedError(c, "Invalid token")
 			return
 		}
 
