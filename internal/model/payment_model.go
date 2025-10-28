@@ -9,7 +9,6 @@ import (
 // Payment represents the payment details for an order.
 type Payment struct {
 	gorm.Model
-	PaymentID     uint          `gorm:"primaryKey;autoIncrement" json:"payment_id"`
 	OrderID       uint          `gorm:"unique;not null" json:"order_id"` // Foreign Key ke Order (1:1 relationship)
 	PaymentMethod PaymentMethod `gorm:"type:varchar(50);not null" json:"payment_method"`
 	TransactionID string        `gorm:"unique;not null" json:"transaction_id"` // ID from payment gateway

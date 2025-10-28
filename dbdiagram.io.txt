@@ -1,4 +1,3 @@
-
 //// -- LEVEL 1
 //// -- Tables and Columns
 // Creating tables
@@ -72,12 +71,37 @@ Table event_guests {
   session_title varchar
 }
 
+Table orders {
+  id integer [primary key]
+  user_id integer [not null]
+  total_price integer [not null]
+  status order_status [not null, default: 'PENDING']
+  payment_due timestamp
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
+Table payments {
+  id integer [primary key]
+  order_id integer [unique, not null]
+  payment_method payment_method [not null]
+  transaction_id varchar [unique, not null]
+  payment_status payment_status [not null]
+  payment_date timestamp [default: 'CURRENT_TIMESTAMP']
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
 //// -- LEVEL 2
 //// -- Relations
 Ref: events.venue_id > venues.id
 Ref: event_prices.event_id > events.id
 Ref: event_guests.event_id > events.id
 Ref: event_guests.guest_id > guests.id
+Ref: orders.user_id > users.id
+Ref: payments.order_id > orders.id
 
 //// -- LEVEL 3
 //// -- Enum Definitions
@@ -91,4 +115,23 @@ Enum event_status {
   DRAFT
   PUBLISHED
   CANCELLED
+}
+
+Enum order_status {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+Enum payment_method {
+  CREDIT_CARD
+  VIRTUAL_ACCOUNT
+  PAYPAL
+}
+
+Enum payment_status {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
 }

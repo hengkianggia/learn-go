@@ -22,7 +22,6 @@ type PaymentController interface {
 	DeletePayment(c *gin.Context)
 }
 
-
 type paymentController struct {
 	paymentService service.PaymentService
 	logger         *slog.Logger
@@ -56,7 +55,7 @@ func (ctrl *paymentController) CreatePayment(c *gin.Context) {
 
 	// Create the response DTO
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.PaymentID,
+		PaymentID:     payment.ID,
 		OrderID:       payment.OrderID,
 		PaymentMethod: payment.PaymentMethod,
 		TransactionID: payment.TransactionID,
@@ -87,7 +86,7 @@ func (ctrl *paymentController) GetPaymentByID(c *gin.Context) {
 
 	// Create the response DTO
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.PaymentID,
+		PaymentID:     payment.ID,
 		OrderID:       payment.OrderID,
 		PaymentMethod: payment.PaymentMethod,
 		TransactionID: payment.TransactionID,
@@ -118,7 +117,7 @@ func (ctrl *paymentController) GetPaymentByOrderID(c *gin.Context) {
 
 	// Create the response DTO
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.PaymentID,
+		PaymentID:     payment.ID,
 		OrderID:       payment.OrderID,
 		PaymentMethod: payment.PaymentMethod,
 		TransactionID: payment.TransactionID,
@@ -181,7 +180,7 @@ func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
 	}
 
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.PaymentID,
+		PaymentID:     payment.ID,
 		OrderID:       payment.OrderID,
 		PaymentMethod: payment.PaymentMethod,
 		TransactionID: payment.TransactionID,
@@ -191,7 +190,6 @@ func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
 
 	response.SendSuccess(c, http.StatusOK, "Payment status updated successfully", paymentResponse)
 }
-
 
 func (ctrl *paymentController) DeletePayment(c *gin.Context) {
 	paymentIDStr := c.Param("id")
