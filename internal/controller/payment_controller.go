@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"learn/internal/dto"
+	"learn/internal/model"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -41,7 +42,13 @@ func (ctrl *paymentController) CreatePayment(c *gin.Context) {
 		return
 	}
 
-	payment, err := ctrl.paymentService.CreatePayment(&req)
+	user, exists := c.Get("user")
+	if !exists {
+		response.SendUnauthorizedError(c, "User not authenticated")
+		return
+	}
+
+	payment, err := ctrl.paymentService.CreatePayment(&req, user.(model.User).ID)
 	if err != nil {
 		response.SendBadRequestError(c, err.Error()) // Generic bad request for now, can be more specific
 		return

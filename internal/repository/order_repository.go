@@ -12,6 +12,7 @@ type OrderRepository interface {
 	GetEventPricesByIDs(priceIDs []uint) ([]model.EventPrice, error)
 	GetEventByID(id uint) (*model.Event, error)
 	GetOrderByID(orderID uint) (*model.Order, error)
+	UpdateOrder(order *model.Order) error
 }
 
 type orderRepository struct {
@@ -72,4 +73,8 @@ func (r *orderRepository) GetOrderByID(orderID uint) (*model.Order, error) {
 		return nil, err
 	}
 	return &order, nil
+}
+
+func (r *orderRepository) UpdateOrder(order *model.Order) error {
+	return r.db.Save(order).Error
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type PaymentService interface {
-	CreatePayment(req *dto.CreatePaymentRequest) (*model.Payment, error)
+	CreatePayment(req *dto.CreatePaymentRequest, userID uint) (*model.Payment, error)
 	GetPaymentByID(paymentID uint) (*model.Payment, error)
 	GetPaymentByOrderID(orderID uint) (*model.Payment, error)
 	UpdatePayment(paymentID uint, req *dto.UpdatePaymentRequest) (*model.Payment, error)
@@ -33,15 +33,19 @@ func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repos
 	}
 }
 
-func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest) (*model.Payment, error) {
+func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uint) (*model.Payment, error) {
 	// Check if order exists
-	_, err := s.orderRepository.GetOrderByID(req.OrderID)
+	order, err := s.orderRepository.GetOrderByID(req.OrderID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("order not found")
 		}
 		s.logger.Error("failed to get order by ID", slog.Uint64("order_id", uint64(req.OrderID)), slog.String("error", err.Error()))
 		return nil, errors.New("failed to create payment")
+	}
+
+	if order.UserID != userID {
+		return nil, errors.New("you are not authorized to pay for this order")
 	}
 
 	// Check if a payment already exists for this order (due to 1:1 relationship)
@@ -115,21 +119,6 @@ func (s *paymentService) UpdatePayment(paymentID uint, req *dto.UpdatePaymentReq
 	if req.TransactionID != nil {
 		payment.TransactionID = *req.TransactionID
 	}
-	// if req.Amount != nil {
-	// 	// Re-validate amount against order total price if updated
-	// 	order, err := s.orderRepository.GetOrderByID(payment.OrderID)
-	// 	if err != nil {
-	// 		s.logger.Error("failed to get order for payment amount validation", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
-	// 		return nil, errors.New("failed to validate payment amount")
-	// 	}
-	// 	if *req.Amount != order.TotalPrice {
-	// 		return nil, errors.New("updated payment amount does not match order total price")
-	// 	}
-	// 	// payment.Amount = *req.Amount
-	// }
-	// if req.PaymentStatus != nil {
-	// 	payment.PaymentStatus = *req.PaymentStatus
-	// }
 
 	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
 		s.logger.Error("failed to update payment in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
@@ -155,6 +144,20 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 		s.logger.Error("failed to update payment status in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
 		return nil, errors.New("failed to update payment status")
 	}
+
+	if status == model.PaymentStatusSuccess {
+		order, err := s.orderRepository.GetOrderByID(payment.OrderID)
+		if err != nil {
+			s.logger.Error("failed to get order by ID for status update", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
+			return nil, errors.New("failed to update order status")
+		}
+		order.Status = model.OrderPaid
+		if err := s.orderRepository.UpdateOrder(order); err != nil {
+			s.logger.Error("failed to update order status in repository", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
+			return nil, errors.New("failed to update order status")
+		}
+	}
+
 	return payment, nil
 }
 
