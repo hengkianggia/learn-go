@@ -17,8 +17,10 @@ type PaymentController interface {
 	GetPaymentByID(c *gin.Context)
 	GetPaymentByOrderID(c *gin.Context)
 	UpdatePayment(c *gin.Context)
+	UpdatePaymentStatus(c *gin.Context)
 	DeletePayment(c *gin.Context)
 }
+
 
 type paymentController struct {
 	paymentService service.PaymentService
@@ -146,6 +148,34 @@ func (ctrl *paymentController) UpdatePayment(c *gin.Context) {
 
 	response.SendSuccess(c, http.StatusOK, "Payment updated successfully", payment)
 }
+
+func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
+	paymentIDStr := c.Param("id")
+	paymentID, err := strconv.ParseUint(paymentIDStr, 10, 32)
+	if err != nil {
+		response.SendBadRequestError(c, "Invalid payment ID")
+		return
+	}
+
+	var req dto.UpdatePaymentStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.SendBadRequestError(c, err.Error())
+		return
+	}
+
+	payment, err := ctrl.paymentService.UpdatePaymentStatus(uint(paymentID), req.Status)
+	if err != nil {
+		if errors.Is(err, errors.New("payment not found")) {
+			response.SendNotFoundError(c, err.Error())
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, err)
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Payment status updated successfully", payment)
+}
+
 
 func (ctrl *paymentController) DeletePayment(c *gin.Context) {
 	paymentIDStr := c.Param("id")

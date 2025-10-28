@@ -15,8 +15,10 @@ type PaymentService interface {
 	GetPaymentByID(paymentID uint) (*model.Payment, error)
 	GetPaymentByOrderID(orderID uint) (*model.Payment, error)
 	UpdatePayment(paymentID uint, req *dto.UpdatePaymentRequest) (*model.Payment, error)
+	UpdatePaymentStatus(paymentID uint, status model.PaymentStatus) (*model.Payment, error)
 	DeletePayment(paymentID uint) error
 }
+
 
 type paymentService struct {
 	paymentRepository repository.PaymentRepository
@@ -133,6 +135,25 @@ func (s *paymentService) UpdatePayment(paymentID uint, req *dto.UpdatePaymentReq
 	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
 		s.logger.Error("failed to update payment in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
 		return nil, errors.New("failed to update payment")
+	}
+	return payment, nil
+}
+
+func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.PaymentStatus) (*model.Payment, error) {
+	payment, err := s.paymentRepository.GetPaymentByID(paymentID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("payment not found")
+		}
+		s.logger.Error("failed to get payment by ID for status update", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
+		return nil, errors.New("failed to update payment status")
+	}
+
+	payment.PaymentStatus = status
+
+	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
+		s.logger.Error("failed to update payment status in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
+		return nil, errors.New("failed to update payment status")
 	}
 	return payment, nil
 }

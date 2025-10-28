@@ -22,6 +22,7 @@ func SetupPaymentRoutes(apiV1 *gin.RouterGroup, db *gorm.DB, logger *slog.Logger
 		paymentRouter.GET("/:id", paymentController.GetPaymentByID)
 		paymentRouter.GET("/order/:order_id", paymentController.GetPaymentByOrderID)
 		paymentRouter.PUT("/:id", paymentController.UpdatePayment)
+		paymentRouter.PATCH("/:id/status", paymentController.UpdatePaymentStatus)
 		paymentRouter.DELETE("/:id", paymentController.DeletePayment)
 	}
 }

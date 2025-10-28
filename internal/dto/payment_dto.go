@@ -29,3 +29,8 @@ type UpdatePaymentRequest struct {
 	Amount        *int64               `json:"amount" binding:"min=1"`
 	PaymentStatus *model.PaymentStatus `json:"payment_status"`
 }
+
+// UpdatePaymentStatusRequest represents the request body for updating only the payment status
+type UpdatePaymentStatusRequest struct {
+	Status model.PaymentStatus `json:"status" binding:"required"`
+}
