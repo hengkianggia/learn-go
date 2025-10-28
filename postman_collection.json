@@ -23,8 +23,13 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/auth/register",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "register"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
                         }
                     },
                     "response": []
@@ -45,8 +50,13 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/auth/login",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "login"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
                         }
                     },
                     "response": []
@@ -58,8 +68,13 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/auth/logout",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["auth", "logout"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
                         }
                     },
                     "response": []
@@ -71,8 +86,12 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/profile",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["profile"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "profile"
+                            ]
                         }
                     },
                     "response": []
@@ -98,8 +117,12 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/events",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["events"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "events"
+                            ]
                         },
                         "description": "Creates a new event.\n\n**Prerequisites:**\n1. You must be authenticated as an **organizer** or **administrator**.\n2. You must have the `venue_id` of an existing venue.\n3. You must have the `guest_id` of existing guests. You can create new guests using the \"Create Guest\" request in the \"Guests\" folder.\n\n**Request Body:**\nThe `guests` field is an array of objects, where each object contains a `guest_id` and a `session_title`.\nThe `prices` field is an array of objects, where each object contains a `name` and a `price`."
                     },
@@ -112,8 +135,12 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/events",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["events"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "events"
+                            ]
                         }
                     },
                     "response": []
@@ -125,8 +152,13 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/events/my-awesome-event",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["events", "my-awesome-event"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "events",
+                                "my-awesome-event"
+                            ]
                         }
                     },
                     "response": []
@@ -147,8 +179,13 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/events/my-awesome-event",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["events", "my-awesome-event"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "events",
+                                "my-awesome-event"
+                            ]
                         }
                     },
                     "response": [
@@ -168,8 +205,13 @@
                                 },
                                 "url": {
                                     "raw": "{{baseUrl}}/events/my-awesome-event",
-                                    "host": ["{{baseUrl}}"],
-                                    "path": ["events", "my-awesome-event"]
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "events",
+                                        "my-awesome-event"
+                                    ]
                                 }
                             },
                             "status": "Bad Request",
@@ -207,8 +249,12 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/venues",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["venues"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "venues"
+                            ]
                         }
                     },
                     "response": []
@@ -220,8 +266,12 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/venues",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["venues"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "venues"
+                            ]
                         }
                     },
                     "response": []
@@ -233,8 +283,13 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/venues/my-awesome-venue",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["venues", "my-awesome-venue"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "venues",
+                                "my-awesome-venue"
+                            ]
                         }
                     },
                     "response": []
@@ -246,8 +301,14 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/venues/my-awesome-venue/events",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["venues", "my-awesome-venue", "events"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "venues",
+                                "my-awesome-venue",
+                                "events"
+                            ]
                         }
                     },
                     "response": []
@@ -268,8 +329,13 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/venues/my-awesome-venue",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["venues", "my-awesome-venue"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "venues",
+                                "my-awesome-venue"
+                            ]
                         }
                     },
                     "response": []
@@ -295,8 +361,12 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/guests",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["guests"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "guests"
+                            ]
                         }
                     },
                     "response": []
@@ -308,8 +378,12 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/guests",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["guests"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "guests"
+                            ]
                         }
                     },
                     "response": []
@@ -321,8 +395,13 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/guests/john-doe",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["guests", "john-doe"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "guests",
+                                "john-doe"
+                            ]
                         }
                     },
                     "response": []
@@ -334,8 +413,14 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/guests/john-doe/events",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["guests", "john-doe", "events"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "guests",
+                                "john-doe",
+                                "events"
+                            ]
                         }
                     },
                     "response": []
@@ -356,8 +441,13 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/guests/john-doe",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["guests", "john-doe"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "guests",
+                                "john-doe"
+                            ]
                         }
                     },
                     "response": []
@@ -383,8 +473,12 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/orders",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["orders"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ]
                         },
                         "description": "Creates a new order for an event. Requires authentication as an 'attendee'."
                     },
@@ -411,8 +505,12 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/payments",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["payments"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments"
+                            ]
                         }
                     },
                     "response": []
@@ -424,8 +522,13 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/payments/1",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["payments", "1"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments",
+                                "1"
+                            ]
                         }
                     },
                     "response": []
@@ -437,8 +540,14 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/payments/order/1",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["payments", "order", "1"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments",
+                                "order",
+                                "1"
+                            ]
                         }
                     },
                     "response": []
@@ -459,8 +568,41 @@
                         },
                         "url": {
                             "raw": "{{baseUrl}}/payments/1",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["payments", "1"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Payment Status",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"PAID\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/payments/1/status",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments",
+                                "1",
+                                "status"
+                            ]
                         }
                     },
                     "response": []
@@ -472,8 +614,13 @@
                         "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/payments/1",
-                            "host": ["{{baseUrl}}"],
-                            "path": ["payments", "1"]
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments",
+                                "1"
+                            ]
                         }
                     },
                     "response": []

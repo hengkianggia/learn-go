@@ -19,7 +19,6 @@ type PaymentService interface {
 	DeletePayment(paymentID uint) error
 }
 
-
 type paymentService struct {
 	paymentRepository repository.PaymentRepository
 	orderRepository   repository.OrderRepository
@@ -145,6 +144,7 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("payment not found")
 		}
+
 		s.logger.Error("failed to get payment by ID for status update", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
 		return nil, errors.New("failed to update payment status")
 	}

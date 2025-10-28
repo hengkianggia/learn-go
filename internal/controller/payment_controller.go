@@ -173,7 +173,16 @@ func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusOK, "Payment status updated successfully", payment)
+	paymentResponse := dto.PaymentResponse{
+		PaymentID:     payment.PaymentID,
+		OrderID:       payment.OrderID,
+		PaymentMethod: payment.PaymentMethod,
+		TransactionID: payment.TransactionID,
+		PaymentStatus: payment.PaymentStatus,
+		PaymentDate:   payment.PaymentDate,
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Payment status updated successfully", paymentResponse)
 }
 
 
