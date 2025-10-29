@@ -14,7 +14,9 @@ import (
 func SetupPaymentRoutes(apiV1 *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 	paymentRepository := repository.NewPaymentRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
-	paymentService := service.NewPaymentService(paymentRepository, orderRepository, logger)
+	ticketRepository := repository.NewTicketRepository(db)
+	eventRepository := repository.NewEventRepository(db)
+	paymentService := service.NewPaymentService(paymentRepository, orderRepository, ticketRepository, eventRepository, logger)
 	paymentController := controller.NewPaymentController(paymentService, logger)
 
 	paymentRouter := apiV1.Group("/payments")

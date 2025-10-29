@@ -4,6 +4,7 @@ import (
 	"errors"
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/random" // Added
 	"learn/internal/repository"
 	"log/slog"
 
@@ -22,13 +23,17 @@ type PaymentService interface {
 type paymentService struct {
 	paymentRepository repository.PaymentRepository
 	orderRepository   repository.OrderRepository
+	ticketRepository  repository.TicketRepository // Added
+	eventRepository   repository.EventRepository  // Added
 	logger            *slog.Logger
 }
 
-func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repository.OrderRepository, logger *slog.Logger) PaymentService {
+func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repository.OrderRepository, ticketRepo repository.TicketRepository, eventRepo repository.EventRepository, logger *slog.Logger) PaymentService {
 	return &paymentService{
 		paymentRepository: paymentRepo,
 		orderRepository:   orderRepo,
+		ticketRepository:  ticketRepo,
+		eventRepository:   eventRepo,
 		logger:            logger,
 	}
 }
@@ -146,15 +151,48 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 	}
 
 	if status == model.PaymentStatusSuccess {
-		order, err := s.orderRepository.GetOrderByID(payment.OrderID)
+		// Get order with line items and user
+		order, err := s.orderRepository.GetOrderByIDWithLineItems(payment.OrderID)
 		if err != nil {
-			s.logger.Error("failed to get order by ID for status update", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
+			s.logger.Error("failed to get order by ID with line items for status update", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
 			return nil, errors.New("failed to update order status")
 		}
+
+		// Update order status to paid
 		order.Status = model.OrderPaid
 		if err := s.orderRepository.UpdateOrder(order); err != nil {
 			s.logger.Error("failed to update order status in repository", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
 			return nil, errors.New("failed to update order status")
+		}
+
+		// Generate and create tickets
+		var ticketsToCreate []model.Ticket
+		for _, lineItem := range order.OrderLineItems {
+			// Fetch EventPrice details to get Type (Name)
+			eventPrice, err := s.eventRepository.GetEventPriceByID(lineItem.EventPriceID)
+			if err != nil {
+				s.logger.Error("failed to get event price for ticket generation", slog.Uint64("event_price_id", uint64(lineItem.EventPriceID)), slog.String("error", err.Error()))
+				return nil, errors.New("failed to generate tickets")
+			}
+
+			for i := 0; i < lineItem.Quantity; i++ {
+				ticketsToCreate = append(ticketsToCreate, model.Ticket{
+					OrderID:      order.ID,
+					EventPriceID: lineItem.EventPriceID,
+					Price:        lineItem.PricePerUnit,
+					Type:         eventPrice.Name, // Use EventPrice Name as Ticket Type
+					TicketCode:   random.String(10),
+					OwnerName:    order.User.Name,
+					OwnerEmail:   order.User.Email,
+				})
+			}
+		}
+
+		if len(ticketsToCreate) > 0 {
+			if err := s.ticketRepository.CreateTickets(ticketsToCreate); err != nil {
+				s.logger.Error("failed to create tickets", slog.String("error", err.Error()))
+				return nil, errors.New("failed to generate tickets")
+			}
 		}
 	}
 

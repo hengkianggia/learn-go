@@ -489,32 +489,7 @@
         {
             "name": "Payments",
             "item": [
-                {
-                    "name": "Create Payment",
-                    "request": {
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"order_id\": 1,\n  \"payment_method\": \"CREDIT_CARD\",\n  \"transaction_id\": \"YOUR_TRANSACTION_ID\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/payments",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "payments"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
+
                 {
                     "name": "Get Payment By ID",
                     "request": {
@@ -586,7 +561,7 @@
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"status\": \"PAID\"\n}",
+                            "raw": "{\n  \"status\": \"SUCCESS\"\n}",
                             "options": {
                                 "raw": {
                                     "language": "json"
@@ -603,7 +578,8 @@
                                 "1",
                                 "status"
                             ]
-                        }
+                        },
+                        "description": "Updates the status of a payment. If the status is updated to 'SUCCESS', tickets associated with the order will be generated."
                     },
                     "response": []
                 },

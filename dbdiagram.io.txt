@@ -94,6 +94,17 @@ Table payments {
   deleted_at timestamp
 }
 
+Table order_line_items {
+  id integer [primary key]
+  order_id integer [not null]
+  event_price_id integer [not null]
+  quantity integer [not null]
+  price_per_unit integer [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp
+}
+
 //// -- LEVEL 2
 //// -- Relations
 Ref: events.venue_id > venues.id
@@ -102,6 +113,8 @@ Ref: event_guests.event_id > events.id
 Ref: event_guests.guest_id > guests.id
 Ref: orders.user_id > users.id
 Ref: payments.order_id > orders.id
+Ref: order_line_items.order_id > orders.id
+Ref: order_line_items.event_price_id > event_prices.id
 
 //// -- LEVEL 3
 //// -- Enum Definitions

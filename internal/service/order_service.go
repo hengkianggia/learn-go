@@ -4,7 +4,6 @@ import (
 	"errors"
 	"learn/internal/dto"
 	"learn/internal/model"
-	"learn/internal/pkg/random"
 	"learn/internal/repository"
 	"log/slog"
 	"strconv"
@@ -65,7 +64,6 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 	}
 
 	var totalPrice int64
-	var tickets []model.Ticket
 	priceUpdates := make(map[uint]int)
 
 	for _, price := range prices {
@@ -80,15 +78,6 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 
 		totalPrice += price.Price * int64(quantity)
 		priceUpdates[price.ID] = quantity
-
-		for i := 0; i < quantity; i++ {
-			tickets = append(tickets, model.Ticket{
-				EventPriceID: price.ID,
-				Price:        price.Price,
-				Type:         price.Name,
-				TicketCode:   random.String(10),
-			})
-		}
 	}
 
 	order := &model.Order{
@@ -98,7 +87,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 		PaymentDue: time.Now().Add(24 * time.Hour),
 	}
 
-	err = s.orderRepo.CreateOrderInTransaction(order, tickets, priceUpdates)
+	err = s.orderRepo.CreateOrderInTransaction(order, prices, priceUpdates)
 	if err != nil {
 		s.logger.Error("failed to create order", slog.String("error", err.Error()))
 		return nil, err

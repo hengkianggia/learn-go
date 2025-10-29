@@ -21,5 +21,6 @@ type Order struct {
 	TotalPrice int64       `gorm:"not null"`
 	Status     OrderStatus `gorm:"not null;default:'PENDING'"`
 	PaymentDue time.Time
+	OrderLineItems []OrderLineItem `gorm:"foreignKey:OrderID"` // Added
 	Tickets    []Ticket
 }

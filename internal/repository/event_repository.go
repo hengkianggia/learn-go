@@ -12,6 +12,7 @@ type EventRepository interface {
 	FindBySlug(slug string) (*model.Event, error)
 	CreateEventGuests(eventGuests []model.EventGuest) error
 	CreateEventPrices(eventPrices []model.EventPrice) error
+	GetEventPriceByID(id uint) (*model.EventPrice, error) // Added
 	GetEventsByGuestSlug(guestSlug string) ([]model.Event, error)
 	UpdateEvent(event *model.Event) error
 }
@@ -56,4 +57,10 @@ func (r *eventRepository) GetEventsByGuestSlug(guestSlug string) ([]model.Event,
 
 func (r *eventRepository) UpdateEvent(event *model.Event) error {
 	return r.db.Save(event).Error
+}
+
+func (r *eventRepository) GetEventPriceByID(id uint) (*model.EventPrice, error) {
+	var eventPrice model.EventPrice
+	err := r.db.First(&eventPrice, id).Error
+	return &eventPrice, err
 }

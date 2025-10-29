@@ -43,7 +43,7 @@ var serveCmd = &cobra.Command{
 		END $$;`)
 
 		// Migrate the schema
-		db.AutoMigrate(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{}, &model.Payment{})
+		db.AutoMigrate(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{}, &model.Payment{}, &model.OrderLineItem{})
 
 		// Seed the database
 		seed.SeedUsers(db, log)

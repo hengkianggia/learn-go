@@ -24,6 +24,20 @@ func SeedUsers(db *gorm.DB, logger *slog.Logger) {
 			UserType:   model.Organizer,
 			IsVerified: true,
 		},
+		{
+			Name:       "hengki",
+			Email:      "hengki@example.com",
+			Password:   "password123",
+			UserType:   model.Attendee,
+			IsVerified: true,
+		},
+		{
+			Name:       "anggia",
+			Email:      "anggia@example.com",
+			Password:   "password123",
+			UserType:   model.Attendee,
+			IsVerified: true,
+		},
 	}
 
 	for _, user := range users {
