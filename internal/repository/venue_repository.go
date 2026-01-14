@@ -6,15 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type venueRepository struct {
+	db *gorm.DB
+}
+
 type VenueRepository interface {
 	CreateVenue(venue *model.Venue) error
 	GetVenueByID(id uint) (*model.Venue, error)
 	FindBySlug(slug string) (*model.Venue, error)
 	UpdateVenue(venue *model.Venue) error
-}
-
-type venueRepository struct {
-	db *gorm.DB
 }
 
 func NewVenueRepository(db *gorm.DB) VenueRepository {

@@ -13,6 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type paymentController struct {
+	paymentService service.PaymentService
+	logger         *slog.Logger
+}
+
 type PaymentController interface {
 	CreatePayment(c *gin.Context)
 	GetPaymentByID(c *gin.Context)
@@ -20,11 +25,6 @@ type PaymentController interface {
 	UpdatePayment(c *gin.Context)
 	UpdatePaymentStatus(c *gin.Context)
 	DeletePayment(c *gin.Context)
-}
-
-type paymentController struct {
-	paymentService service.PaymentService
-	logger         *slog.Logger
 }
 
 func NewPaymentController(paymentService service.PaymentService, logger *slog.Logger) PaymentController {

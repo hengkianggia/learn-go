@@ -11,13 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type OrderController interface {
-	CreateOrder(c *gin.Context)
-}
-
 type orderController struct {
 	orderService service.OrderService
 	logger       *slog.Logger
+}
+type OrderController interface {
+	CreateOrder(c *gin.Context)
 }
 
 func NewOrderController(orderService service.OrderService, logger *slog.Logger) OrderController {

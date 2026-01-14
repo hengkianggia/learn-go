@@ -14,17 +14,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type venueController struct {
+	venueService service.VenueService
+	logger       *slog.Logger
+	db           *gorm.DB
+}
+
 type VenueController interface {
 	CreateVenue(c *gin.Context)
 	GetAllVenues(c *gin.Context)
 	GetVenueBySlug(c *gin.Context)
 	UpdateVenue(c *gin.Context)
-}
-
-type venueController struct {
-	venueService service.VenueService
-	logger       *slog.Logger
-	db           *gorm.DB
 }
 
 func NewVenueController(venueService service.VenueService, logger *slog.Logger, db *gorm.DB) VenueController {

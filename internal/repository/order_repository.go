@@ -8,6 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type orderRepository struct {
+	db *gorm.DB
+}
+
 type OrderRepository interface {
 	CreateOrderInTransaction(order *model.Order, prices []model.EventPrice, priceUpdates map[uint]int) error
 	GetEventPricesByIDs(priceIDs []uint) ([]model.EventPrice, error)
@@ -15,10 +19,6 @@ type OrderRepository interface {
 	GetOrderByID(orderID uint) (*model.Order, error)
 	GetOrderByIDWithLineItems(orderID uint) (*model.Order, error) // Added
 	UpdateOrder(order *model.Order) error
-}
-
-type orderRepository struct {
-	db *gorm.DB
 }
 
 func NewOrderRepository(db *gorm.DB) OrderRepository {

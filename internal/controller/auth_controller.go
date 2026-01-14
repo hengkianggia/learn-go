@@ -12,16 +12,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type authController struct {
+	authService service.AuthService
+	logger      *slog.Logger
+}
+
 type AuthController interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
 	Profile(c *gin.Context)
 	Logout(c *gin.Context)
-}
-
-type authController struct {
-	authService service.AuthService
-	logger      *slog.Logger
 }
 
 func NewAuthController(authService service.AuthService, logger *slog.Logger) AuthController {
@@ -30,6 +30,7 @@ func NewAuthController(authService service.AuthService, logger *slog.Logger) Aut
 
 func (ctrl *authController) Register(c *gin.Context) {
 	var input dto.RegisterInput
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		ctrl.logger.Warn("failed to bind JSON for registration", slog.String("error", err.Error()))
 		response.SendBadRequestError(c, "Invalid input format")

@@ -20,4 +20,3 @@ func StringWithCharset(length int, charset string) string {
 func String(length int) string {
 	return StringWithCharset(length, charset)
 }
-	

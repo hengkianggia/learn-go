@@ -12,15 +12,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type venueService struct {
+	venueRepo repository.VenueRepository
+	logger    *slog.Logger
+}
+
 type VenueService interface {
 	CreateVenue(input dto.CreateVenueInput) (*model.Venue, error)
 	GetVenueBySlug(slug string) (*model.Venue, error)
 	UpdateVenue(slug string, input dto.UpdateVenueInput) (*model.Venue, error)
-}
-
-type venueService struct {
-	venueRepo repository.VenueRepository
-	logger    *slog.Logger
 }
 
 func NewVenueService(venueRepo repository.VenueRepository, logger *slog.Logger) VenueService {

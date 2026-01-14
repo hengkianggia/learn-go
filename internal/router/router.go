@@ -45,4 +45,3 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
 
 	return r
 }
-

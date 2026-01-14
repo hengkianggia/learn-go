@@ -13,7 +13,9 @@ import (
 // GenerateJWT membuat token JWT baru
 func GenerateJWT(user model.User) (string, error) {
 	jwtKey := []byte(config.AppConfig.JWTSecretKey)
+
 	expirationTime := time.Now().Add(24 * time.Hour)
+
 	claims := &middleware.Claims{
 		Email: user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{

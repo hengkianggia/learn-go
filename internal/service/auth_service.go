@@ -8,14 +8,14 @@ import (
 	"log/slog"
 )
 
-type AuthService interface {
-	Register(input dto.RegisterInput) (*model.User, error)
-	Login(input dto.LoginInput) (string, error)
-}
-
 type authService struct {
 	userRepo repository.UserRepository
 	logger   *slog.Logger
+}
+
+type AuthService interface {
+	Register(input dto.RegisterInput) (*model.User, error)
+	Login(input dto.LoginInput) (string, error)
 }
 
 func NewAuthService(userRepo repository.UserRepository, logger *slog.Logger) AuthService {

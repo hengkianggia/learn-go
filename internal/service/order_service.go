@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-type OrderService interface {
-	CreateOrder(input dto.NewOrderInput, userID uint) (*model.Order, error)
-}
-
 type orderService struct {
 	orderRepo repository.OrderRepository
 	logger    *slog.Logger
+}
+
+type OrderService interface {
+	CreateOrder(input dto.NewOrderInput, userID uint) (*model.Order, error)
 }
 
 func NewOrderService(orderRepo repository.OrderRepository, logger *slog.Logger) OrderService {
@@ -50,6 +50,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 		if err != nil {
 			return nil, errors.New("invalid price id")
 		}
+
 		priceIDs = append(priceIDs, uint(priceID))
 		quantityMap[uint(priceID)] = ticketOrder.Quantity
 	}

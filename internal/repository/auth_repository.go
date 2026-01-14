@@ -6,13 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type userRepository struct {
+	db *gorm.DB
+}
+
 type UserRepository interface {
 	Save(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
-}
-
-type userRepository struct {
-	db *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) UserRepository {
