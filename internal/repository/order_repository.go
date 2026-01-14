@@ -3,9 +3,10 @@ package repository
 import (
 	"errors"
 	"learn/internal/model"
-	"time" // Added this import
 
+	// Added this import
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type orderRepository struct {
@@ -19,6 +20,8 @@ type OrderRepository interface {
 	GetOrderByID(orderID uint) (*model.Order, error)
 	GetOrderByIDWithLineItems(orderID uint) (*model.Order, error) // Added
 	UpdateOrder(order *model.Order) error
+	RestoreQuota(eventPriceID uint, quantity int) error
+	GetDB() *gorm.DB
 }
 
 func NewOrderRepository(db *gorm.DB) OrderRepository {
@@ -27,24 +30,32 @@ func NewOrderRepository(db *gorm.DB) OrderRepository {
 
 func (r *orderRepository) CreateOrderInTransaction(order *model.Order, prices []model.EventPrice, priceUpdates map[uint]int) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		// 1. Create Order
+		// 1. Lock the EventPrice records to prevent race conditions
+		var lockedPrices []model.EventPrice
+		priceIDs := make([]uint, 0, len(priceUpdates))
+		for priceID := range priceUpdates {
+			priceIDs = append(priceIDs, priceID)
+		}
+
+		// Use FOR UPDATE to lock the rows - compatible syntax
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id IN ?", priceIDs).Find(&lockedPrices).Error; err != nil {
+			return err
+		}
+
+		// 2. Verify quotas are sufficient before proceeding
+		for _, lockedPrice := range lockedPrices {
+			quantity := priceUpdates[lockedPrice.ID]
+			if lockedPrice.Quota < quantity {
+				return errors.New("not enough quota for ticket")
+			}
+		}
+
+		// 3. Create Order
 		if err := tx.Create(order).Error; err != nil {
 			return err
 		}
 
-		// 2. Create Payment record
-		payment := &model.Payment{
-			OrderID:       order.ID,
-			PaymentMethod: model.PaymentMethodVirtualAccount, // Default or placeholder
-			TransactionID: "",                                // Will be updated after payment gateway interaction
-			PaymentStatus: model.PaymentStatusPending,
-			PaymentDate:   time.Now(),
-		}
-		if err := tx.Create(payment).Error; err != nil {
-			return err
-		}
-
-		// 3. Create OrderLineItems
+		// 4. Create OrderLineItems
 		var orderLineItems []model.OrderLineItem
 		priceMap := make(map[uint]model.EventPrice)
 		for _, p := range prices {
@@ -67,7 +78,7 @@ func (r *orderRepository) CreateOrderInTransaction(order *model.Order, prices []
 			return err
 		}
 
-		// 4. Update quotas for each price
+		// 5. Update quotas for each price
 		for priceID, quantity := range priceUpdates {
 			result := tx.Model(&model.EventPrice{}).Where("id = ? AND quota >= ? ", priceID, quantity).UpdateColumn("quota", gorm.Expr("quota - ?", quantity))
 			if result.Error != nil {
@@ -112,4 +123,13 @@ func (r *orderRepository) GetOrderByIDWithLineItems(orderID uint) (*model.Order,
 		return nil, err
 	}
 	return &order, nil
+}
+
+func (r *orderRepository) RestoreQuota(eventPriceID uint, quantity int) error {
+	result := r.db.Model(&model.EventPrice{}).Where("id = ?", eventPriceID).UpdateColumn("quota", gorm.Expr("quota + ?", quantity))
+	return result.Error
+}
+
+func (r *orderRepository) GetDB() *gorm.DB {
+	return r.db
 }

@@ -4,7 +4,9 @@ import (
 	"learn/internal/config"
 	"learn/internal/database"
 	"learn/internal/model"
+	"learn/internal/pkg/events"
 	"learn/internal/pkg/logger"
+	"learn/internal/pkg/queue"
 	"learn/internal/router"
 	seed "learn/internal/seed"
 	"log/slog"
@@ -25,8 +27,16 @@ var serveCmd = &cobra.Command{
 		db := database.InitDatabase(log)
 		config.ConnectRedis(log)
 
+		// 3. Initialize event bus
+		eventBus := events.NewEventBus()
+
+		// 4. Initialize and start job queue
+		jobQueue := queue.NewJobQueue(5, log)
+		jobQueue.Start()
+		defer jobQueue.Stop()
+
 		// Drop table for development
-		db.Migrator().DropTable(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{}, &model.Payment{})
+		// db.Migrator().DropTable(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{}, &model.Payment{})
 
 		// Create the user_type enum
 		db.Exec(`DO $$ BEGIN
@@ -48,10 +58,10 @@ var serveCmd = &cobra.Command{
 		// Seed the database
 		seed.SeedUsers(db, log)
 
-		// 3. Setup Router with dependencies
-		r := router.SetupRouter(log, db)
+		// 5. Setup Router with dependencies
+		r := router.SetupRouter(log, db, eventBus)
 
-		// 4. Run Server
+		// 6. Run Server
 		log.Info("Starting server on port :8080")
 		if err := r.Run(":8080"); err != nil {
 			log.Error("failed to run server", slog.String("error", err.Error()))

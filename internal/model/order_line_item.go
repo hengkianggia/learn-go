@@ -7,5 +7,5 @@ type OrderLineItem struct {
 	OrderID      uint  `gorm:"not null"`
 	EventPriceID uint  `gorm:"not null"`
 	Quantity     int   `gorm:"not null"`
-	PricePerUnit int64 `gorm:"not null"` // Store the price at the time of order
+	PricePerUnit int64 `gorm:"not null"` // Price per unit in smallest currency unit (e.g., cents)
 }

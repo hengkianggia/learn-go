@@ -18,7 +18,7 @@ type Order struct {
 	gorm.Model
 	UserID     uint `gorm:"not null"`
 	User       User
-	TotalPrice int64       `gorm:"not null"`
+	TotalPrice int64       `gorm:"not null"` // Total price in smallest currency unit (e.g., cents)
 	Status     OrderStatus `gorm:"not null;default:'PENDING'"`
 	PaymentDue time.Time
 	OrderLineItems []OrderLineItem `gorm:"foreignKey:OrderID"` // Added

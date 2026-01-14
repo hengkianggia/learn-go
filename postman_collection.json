@@ -483,13 +483,67 @@
                         "description": "Creates a new order for an event. Requires authentication as an 'attendee'."
                     },
                     "response": []
+                },
+                {
+                    "name": "Cancel Order",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"reason\": \"Changed my mind\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/orders/1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "1"
+                            ]
+                        },
+                        "description": "Cancels an order before payment. Requires authentication as the order owner."
+                    },
+                    "response": []
                 }
             ]
         },
         {
             "name": "Payments",
             "item": [
-
+                {
+                    "name": "Create Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"order_id\": 1,\n  \"payment_method\": \"VIRTUAL_ACCOUNT\",\n  \"transaction_id\": \"TRX123456789\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/payments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "payments"
+                            ]
+                        },
+                        "description": "Creates a new payment for an order. Requires authentication."
+                    },
+                    "response": []
+                },
                 {
                     "name": "Get Payment By ID",
                     "request": {

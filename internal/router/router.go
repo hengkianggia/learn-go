@@ -1,6 +1,8 @@
 package router
 
 import (
+	"learn/internal/pkg/events"
+	"learn/internal/repository"
 	"log/slog"
 	"time"
 
@@ -25,12 +27,21 @@ func LoggerMiddleware(logger *slog.Logger) gin.HandlerFunc {
 	}
 }
 
-func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
+func SetupRouter(logger *slog.Logger, db *gorm.DB, eventBus *events.EventBus) *gin.Engine {
 	r := gin.Default()
 
 	r.Use(LoggerMiddleware(logger))
 
 	gin.SetMode(gin.ReleaseMode)
+
+	// Create repositories
+	orderRepo := repository.NewOrderRepository(db)
+	paymentRepo := repository.NewPaymentRepository(db)
+	ticketRepo := repository.NewTicketRepository(db)
+	eventRepo := repository.NewEventRepository(db)
+
+	// Register event handlers
+	RegisterEventHandlersWithRepos(eventBus, orderRepo, paymentRepo, ticketRepo, eventRepo, logger)
 
 	// Buat grup utama untuk /api/v1
 	apiV1 := r.Group("/api/v1")
@@ -39,8 +50,8 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB) *gin.Engine {
 		SetupVenueRoutes(apiV1, db, logger)
 		SetupGuestRoutes(apiV1, db, logger)
 		SetupEventRoutes(apiV1, db, logger)
-		SetupOrderRoutes(apiV1, db, logger)
-		SetupPaymentRoutes(apiV1, db, logger)
+		SetupOrderRoutes(apiV1, db, logger, eventBus)
+		SetupPaymentRoutes(apiV1, db, logger, eventBus)
 	}
 
 	return r

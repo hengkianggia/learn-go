@@ -2,11 +2,15 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"learn/internal/config"
 	"learn/internal/dto"
 	"learn/internal/model"
-	"learn/internal/pkg/random" // Added
+	"learn/internal/pkg/events"
+	"learn/internal/pkg/queue"
 	"learn/internal/repository"
 	"log/slog"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -26,15 +30,19 @@ type paymentService struct {
 	ticketRepository  repository.TicketRepository // Added
 	eventRepository   repository.EventRepository  // Added
 	logger            *slog.Logger
+	jobQueue          *queue.JobQueue
+	eventBus          *events.EventBus
 }
 
-func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repository.OrderRepository, ticketRepo repository.TicketRepository, eventRepo repository.EventRepository, logger *slog.Logger) PaymentService {
+func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repository.OrderRepository, ticketRepo repository.TicketRepository, eventRepo repository.EventRepository, logger *slog.Logger, eventBus *events.EventBus) PaymentService {
 	return &paymentService{
 		paymentRepository: paymentRepo,
 		orderRepository:   orderRepo,
 		ticketRepository:  ticketRepo,
 		eventRepository:   eventRepo,
 		logger:            logger,
+		jobQueue:          queue.NewJobQueue(5, logger), // 5 workers for payment processing
+		eventBus:          eventBus,
 	}
 }
 
@@ -64,16 +72,11 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 		return nil, errors.New("payment already exists for this order")
 	}
 
-	// Validate amount against order total price (business logic)
-	// Assuming TotalPrice is float64 and converting to smallest currency unit (e.g., cents)
-	// This conversion should be handled carefully to avoid precision issues.
-	// For example, if TotalPrice is 100.50, it should be 10050.
-	// A safer approach might be to store TotalPrice as int64 in Order model as well.
+	// Create payment record with order total price (already in smallest currency unit)
 	payment := &model.Payment{
 		OrderID:       req.OrderID,
 		PaymentMethod: req.PaymentMethod,
 		TransactionID: req.TransactionID,
-		// Amount:        order.TotalPrice,
 		PaymentStatus: model.PaymentStatusPending,
 	}
 
@@ -81,6 +84,17 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 		s.logger.Error("failed to create payment in repository", slog.String("error", err.Error()))
 		return nil, errors.New("failed to create payment")
 	}
+
+	// Publish PaymentCreatedEvent
+	paymentCreatedEvent := events.PaymentCreatedEvent{
+		PaymentID: payment.ID,
+		OrderID:   req.OrderID,
+		Method:    req.PaymentMethod,
+		Amount:    order.TotalPrice, // Using order total as payment amount
+		CreatedAt: time.Now(),
+	}
+	s.eventBus.Publish(paymentCreatedEvent)
+
 	return payment, nil
 }
 
@@ -133,6 +147,31 @@ func (s *paymentService) UpdatePayment(paymentID uint, req *dto.UpdatePaymentReq
 }
 
 func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.PaymentStatus) (*model.Payment, error) {
+	// Use Redis lock to prevent concurrent updates to the same payment
+	lockKey := "payment_lock:" + fmt.Sprintf("%d", paymentID)
+	set, err := s.paymentRepository.GetRedisClient().SetNX(config.Ctx, lockKey, "locked", 30*time.Second).Result()
+	if err != nil {
+		s.logger.Error("failed to acquire payment lock", slog.String("error", err.Error()))
+	} else if !set {
+		return nil, errors.New("payment is being processed, please wait")
+	}
+	defer s.paymentRepository.GetRedisClient().Del(config.Ctx, lockKey) // Clean up lock
+
+	// Create a job for processing the payment status update
+	job := queue.NewPaymentJob(
+		paymentID,
+		status,
+		s.orderRepository,
+		s.paymentRepository,
+		s.ticketRepository,
+		s.eventRepository,
+		s.logger,
+	)
+
+	// Add the job to the queue for asynchronous processing
+	s.jobQueue.Enqueue(job)
+
+	// Return the payment with the updated status without waiting for the job to complete
 	payment, err := s.paymentRepository.GetPaymentByID(paymentID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -144,57 +183,19 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 	}
 
 	payment.PaymentStatus = status
-
 	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
 		s.logger.Error("failed to update payment status in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
 		return nil, errors.New("failed to update payment status")
 	}
 
-	if status == model.PaymentStatusSuccess {
-		// Get order with line items and user
-		order, err := s.orderRepository.GetOrderByIDWithLineItems(payment.OrderID)
-		if err != nil {
-			s.logger.Error("failed to get order by ID with line items for status update", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
-			return nil, errors.New("failed to update order status")
-		}
-
-		// Update order status to paid
-		order.Status = model.OrderPaid
-		if err := s.orderRepository.UpdateOrder(order); err != nil {
-			s.logger.Error("failed to update order status in repository", slog.Uint64("order_id", uint64(payment.OrderID)), slog.String("error", err.Error()))
-			return nil, errors.New("failed to update order status")
-		}
-
-		// Generate and create tickets
-		var ticketsToCreate []model.Ticket
-		for _, lineItem := range order.OrderLineItems {
-			// Fetch EventPrice details to get Type (Name)
-			eventPrice, err := s.eventRepository.GetEventPriceByID(lineItem.EventPriceID)
-			if err != nil {
-				s.logger.Error("failed to get event price for ticket generation", slog.Uint64("event_price_id", uint64(lineItem.EventPriceID)), slog.String("error", err.Error()))
-				return nil, errors.New("failed to generate tickets")
-			}
-
-			for i := 0; i < lineItem.Quantity; i++ {
-				ticketsToCreate = append(ticketsToCreate, model.Ticket{
-					OrderID:      order.ID,
-					EventPriceID: lineItem.EventPriceID,
-					Price:        lineItem.PricePerUnit,
-					Type:         eventPrice.Name, // Use EventPrice Name as Ticket Type
-					TicketCode:   random.String(10),
-					OwnerName:    order.User.Name,
-					OwnerEmail:   order.User.Email,
-				})
-			}
-		}
-
-		if len(ticketsToCreate) > 0 {
-			if err := s.ticketRepository.CreateTickets(ticketsToCreate); err != nil {
-				s.logger.Error("failed to create tickets", slog.String("error", err.Error()))
-				return nil, errors.New("failed to generate tickets")
-			}
-		}
+	// Publish PaymentStatusUpdatedEvent
+	paymentStatusEvent := events.PaymentStatusUpdatedEvent{
+		PaymentID: paymentID,
+		OrderID:   payment.OrderID,
+		Status:    status,
+		UpdatedAt: time.Now(),
 	}
+	s.eventBus.Publish(paymentStatusEvent)
 
 	return payment, nil
 }

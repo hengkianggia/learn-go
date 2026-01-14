@@ -3,6 +3,7 @@ package router
 import (
 	"learn/internal/controller"
 	"learn/internal/middleware"
+	"learn/internal/pkg/events"
 	"learn/internal/repository"
 	"learn/internal/service"
 	"log/slog"
@@ -11,12 +12,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupPaymentRoutes(apiV1 *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
+func SetupPaymentRoutes(apiV1 *gin.RouterGroup, db *gorm.DB, logger *slog.Logger, eventBus *events.EventBus) {
 	paymentRepository := repository.NewPaymentRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
 	ticketRepository := repository.NewTicketRepository(db)
 	eventRepository := repository.NewEventRepository(db)
-	paymentService := service.NewPaymentService(paymentRepository, orderRepository, ticketRepository, eventRepository, logger)
+	paymentService := service.NewPaymentService(paymentRepository, orderRepository, ticketRepository, eventRepository, logger, eventBus)
 	paymentController := controller.NewPaymentController(paymentService, logger)
 
 	paymentRouter := apiV1.Group("/payments")

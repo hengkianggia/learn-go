@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"learn/internal/config"
 	"learn/internal/model"
 
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 )
 
@@ -12,6 +14,7 @@ type PaymentRepository interface {
 	GetPaymentByOrderID(orderID uint) (*model.Payment, error)
 	UpdatePayment(payment *model.Payment) error
 	DeletePayment(paymentID uint) error
+	GetRedisClient() *redis.Client
 }
 
 type paymentRepository struct {
@@ -20,6 +23,10 @@ type paymentRepository struct {
 
 func NewPaymentRepository(db *gorm.DB) PaymentRepository {
 	return &paymentRepository{db: db}
+}
+
+func (r *paymentRepository) GetRedisClient() *redis.Client {
+	return config.Rdb
 }
 
 func (r *paymentRepository) CreatePayment(payment *model.Payment) error {
