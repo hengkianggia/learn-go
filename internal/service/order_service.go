@@ -1,9 +1,9 @@
 package service
 
 import (
-	"errors"
 	"learn/internal/config"
 	"learn/internal/dto"
+	apperrors "learn/internal/errors"
 	"learn/internal/model"
 	"learn/internal/pkg/events"
 	"learn/internal/repository"
@@ -37,21 +37,21 @@ func NewOrderService(orderRepo repository.OrderRepository, logger *slog.Logger, 
 func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model.Order, error) {
 	eventID, err := strconv.ParseUint(input.EventID, 10, 32)
 	if err != nil {
-		return nil, errors.New("invalid event id")
+		return nil, apperrors.NewValidationError("event_id", "invalid event id", input.EventID)
 	}
 
 	event, err := s.orderRepo.GetEventByID(uint(eventID))
 	if err != nil {
-		return nil, errors.New("event not found")
+		return nil, apperrors.NewBusinessRuleError("event_exists", "event not found")
 	}
 
 	if event.Status != model.Published {
-		return nil, errors.New("event is not published")
+		return nil, apperrors.NewBusinessRuleError("event_published", "event is not published")
 	}
 
 	now := time.Now()
 	if now.Before(event.SalesStartDate) || now.After(event.SalesEndDate) {
-		return nil, errors.New("event is not within sales period")
+		return nil, apperrors.NewBusinessRuleError("event_sales_period", "event is not within sales period")
 	}
 
 	// Anti-spam validation: Check if user has too many pending orders recently
@@ -60,7 +60,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 		s.logger.Error("failed to check recent orders", slog.String("error", err.Error()))
 	}
 	if recentOrderCount > 5 { // Allow max 5 orders per hour
-		return nil, errors.New("too many orders recently, please wait before placing another order")
+		return nil, apperrors.NewBusinessRuleError("order_limit", "too many orders recently, please wait before placing another order")
 	}
 
 	var priceIDs []uint
@@ -70,7 +70,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 	for _, ticketOrder := range input.TicketsOrdered {
 		priceID, err := strconv.ParseUint(ticketOrder.PriceId, 10, 32)
 		if err != nil {
-			return nil, errors.New("invalid price id")
+			return nil, apperrors.NewValidationError("price_id", "invalid price id", ticketOrder.PriceId)
 		}
 
 		priceIDs = append(priceIDs, uint(priceID))
@@ -80,16 +80,16 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 
 	// Anti-abuse validation: Limit total tickets per order
 	if totalQuantity > 10 { // Maximum 10 tickets per order
-		return nil, errors.New("maximum 10 tickets allowed per order")
+		return nil, apperrors.NewValidationError("tickets_ordered", "maximum 10 tickets allowed per order", totalQuantity)
 	}
 
 	prices, err := s.orderRepo.GetEventPricesByIDs(priceIDs)
 	if err != nil {
-		return nil, errors.New("failed to get prices")
+		return nil, apperrors.NewBusinessRuleError("event_prices_exist", "failed to get prices")
 	}
 
 	if len(prices) != len(priceIDs) {
-		return nil, errors.New("one or more prices not found")
+		return nil, apperrors.NewBusinessRuleError("event_prices_exist", "one or more prices not found")
 	}
 
 	var totalPrice int64
@@ -97,12 +97,12 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 
 	for _, price := range prices {
 		if price.EventID != uint(eventID) {
-			return nil, errors.New("one or more prices do not belong to this event")
+			return nil, apperrors.NewBusinessRuleError("event_prices_match", "one or more prices do not belong to this event")
 		}
 
 		quantity := quantityMap[price.ID]
 		if price.Quota < quantity {
-			return nil, errors.New("not enough quota for ticket")
+			return nil, apperrors.NewBusinessRuleError("ticket_quota", "not enough quota for ticket")
 		}
 
 		// Calculate total price using integer arithmetic to avoid floating point errors
@@ -111,7 +111,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 		// Check for overflow before adding
 		const maxInt64 = int64(^uint64(0) >> 1)
 		if totalPrice > (maxInt64 - itemTotal) {
-			return nil, errors.New("order total exceeds maximum allowed value")
+			return nil, apperrors.NewBusinessRuleError("order_total_limit", "order total exceeds maximum allowed value")
 		}
 
 		totalPrice += itemTotal
@@ -123,8 +123,9 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 	set, err := s.redis.SetNX(config.Ctx, orderLockKey, "locked", 5*time.Minute).Result()
 	if err != nil {
 		s.logger.Error("failed to set order lock", slog.String("error", err.Error()))
+		return nil, apperrors.NewSystemError("redis_lock", err)
 	} else if !set {
-		return nil, errors.New("order is being processed, please wait")
+		return nil, apperrors.NewBusinessRuleError("order_lock", "order is being processed, please wait")
 	}
 	defer s.redis.Del(config.Ctx, orderLockKey) // Clean up lock
 
@@ -138,7 +139,7 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 	err = s.orderRepo.CreateOrderInTransaction(order, prices, priceUpdates)
 	if err != nil {
 		s.logger.Error("failed to create order", slog.String("error", err.Error()))
-		return nil, err
+		return nil, apperrors.NewSystemError("create_order_transaction", err)
 	}
 
 	// Publish OrderCreatedEvent

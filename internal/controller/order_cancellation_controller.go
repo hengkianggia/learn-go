@@ -1,6 +1,7 @@
 package controller
 
 import (
+	apperrors "learn/internal/errors"
 	"learn/internal/model"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
@@ -62,11 +63,34 @@ func (ctrl *orderCancellationController) CancelOrder(c *gin.Context) {
 
 	err = ctrl.orderCancellationService.CancelOrder(uint(orderID), userModel.ID, req.Reason)
 	if err != nil {
-		ctrl.logger.Error("Failed to cancel order",
-			slog.Uint64("order_id", uint64(orderID)),
-			slog.String("error", err.Error()))
-		response.SendBadRequestError(c, err.Error())
-		return
+		// Handle different types of errors appropriately
+		switch appErr := err.(type) {
+		case apperrors.ValidationError:
+			ctrl.logger.Info("Validation error in cancel order",
+				slog.String("field", appErr.Field),
+				slog.String("message", appErr.Message),
+				slog.Any("value", appErr.Value))
+			response.SendBadRequestError(c, appErr.Error())
+			return
+		case apperrors.BusinessRuleError:
+			ctrl.logger.Info("Business rule error in cancel order",
+				slog.String("rule", appErr.Rule),
+				slog.String("message", appErr.Message))
+			response.SendBadRequestError(c, appErr.Error())
+			return
+		case apperrors.SystemError:
+			ctrl.logger.Error("System error in cancel order",
+				slog.String("operation", appErr.Operation),
+				slog.String("message", appErr.Message),
+				slog.Any("error", appErr.Err))
+			response.SendInternalServerError(c, ctrl.logger, appErr)
+			return
+		default:
+			// For any other error types, treat as internal server error
+			ctrl.logger.Error("Unknown error in cancel order", slog.String("error", err.Error()))
+			response.SendInternalServerError(c, ctrl.logger, err)
+			return
+		}
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Order cancelled successfully", nil)

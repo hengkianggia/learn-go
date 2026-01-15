@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"learn/internal/config"
 	"learn/internal/dto"
+	apperrors "learn/internal/errors"
 	"learn/internal/model"
 	"learn/internal/pkg/events"
 	"learn/internal/pkg/queue"
@@ -51,25 +52,25 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 	order, err := s.orderRepository.GetOrderByID(req.OrderID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("order not found")
+			return nil, apperrors.NewBusinessRuleError("order_exists", "order not found")
 		}
 		s.logger.Error("failed to get order by ID", slog.Uint64("order_id", uint64(req.OrderID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to create payment")
+		return nil, apperrors.NewSystemError("get_order_by_id", err)
 	}
 
 	if order.UserID != userID {
-		return nil, errors.New("you are not authorized to pay for this order")
+		return nil, apperrors.NewBusinessRuleError("payment_authorization", "you are not authorized to pay for this order")
 	}
 
 	// Check if a payment already exists for this order (due to 1:1 relationship)
 	existingPayment, err := s.paymentRepository.GetPaymentByOrderID(req.OrderID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.logger.Error("failed to check existing payment for order", slog.Uint64("order_id", uint64(req.OrderID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to create payment")
+		return nil, apperrors.NewSystemError("check_existing_payment", err)
 	}
 
 	if existingPayment != nil {
-		return nil, errors.New("payment already exists for this order")
+		return nil, apperrors.NewBusinessRuleError("payment_unique", "payment already exists for this order")
 	}
 
 	// Create payment record with order total price (already in smallest currency unit)
@@ -82,7 +83,7 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 
 	if err := s.paymentRepository.CreatePayment(payment); err != nil {
 		s.logger.Error("failed to create payment in repository", slog.String("error", err.Error()))
-		return nil, errors.New("failed to create payment")
+		return nil, apperrors.NewSystemError("create_payment", err)
 	}
 
 	// Publish PaymentCreatedEvent
@@ -102,10 +103,10 @@ func (s *paymentService) GetPaymentByID(paymentID uint) (*model.Payment, error) 
 	payment, err := s.paymentRepository.GetPaymentByID(paymentID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("payment not found")
+			return nil, apperrors.NewBusinessRuleError("payment_exists", "payment not found")
 		}
 		s.logger.Error("failed to get payment by ID", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to retrieve payment")
+		return nil, apperrors.NewSystemError("get_payment_by_id", err)
 	}
 	return payment, nil
 }
@@ -114,10 +115,10 @@ func (s *paymentService) GetPaymentByOrderID(orderID uint) (*model.Payment, erro
 	payment, err := s.paymentRepository.GetPaymentByOrderID(orderID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("payment not found for this order")
+			return nil, apperrors.NewBusinessRuleError("payment_exists", "payment not found for this order")
 		}
 		s.logger.Error("failed to get payment by order ID", slog.Uint64("order_id", uint64(orderID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to retrieve payment for order")
+		return nil, apperrors.NewSystemError("get_payment_by_order_id", err)
 	}
 	return payment, nil
 }
@@ -126,10 +127,10 @@ func (s *paymentService) UpdatePayment(paymentID uint, req *dto.UpdatePaymentReq
 	payment, err := s.paymentRepository.GetPaymentByID(paymentID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("payment not found")
+			return nil, apperrors.NewBusinessRuleError("payment_exists", "payment not found")
 		}
 		s.logger.Error("failed to get payment by ID for update", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to update payment")
+		return nil, apperrors.NewSystemError("get_payment_for_update", err)
 	}
 
 	if req.PaymentMethod != nil {
@@ -141,7 +142,7 @@ func (s *paymentService) UpdatePayment(paymentID uint, req *dto.UpdatePaymentReq
 
 	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
 		s.logger.Error("failed to update payment in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to update payment")
+		return nil, apperrors.NewSystemError("update_payment", err)
 	}
 	return payment, nil
 }
@@ -152,8 +153,9 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 	set, err := s.paymentRepository.GetRedisClient().SetNX(config.Ctx, lockKey, "locked", 30*time.Second).Result()
 	if err != nil {
 		s.logger.Error("failed to acquire payment lock", slog.String("error", err.Error()))
+		return nil, apperrors.NewSystemError("redis_lock", err)
 	} else if !set {
-		return nil, errors.New("payment is being processed, please wait")
+		return nil, apperrors.NewBusinessRuleError("payment_processing", "payment is being processed, please wait")
 	}
 	defer s.paymentRepository.GetRedisClient().Del(config.Ctx, lockKey) // Clean up lock
 
@@ -175,17 +177,17 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 	payment, err := s.paymentRepository.GetPaymentByID(paymentID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("payment not found")
+			return nil, apperrors.NewBusinessRuleError("payment_exists", "payment not found")
 		}
 
 		s.logger.Error("failed to get payment by ID for status update", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to update payment status")
+		return nil, apperrors.NewSystemError("get_payment_for_status_update", err)
 	}
 
 	payment.PaymentStatus = status
 	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
 		s.logger.Error("failed to update payment status in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
-		return nil, errors.New("failed to update payment status")
+		return nil, apperrors.NewSystemError("update_payment_status", err)
 	}
 
 	// Publish PaymentStatusUpdatedEvent
@@ -203,10 +205,10 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 func (s *paymentService) DeletePayment(paymentID uint) error {
 	if err := s.paymentRepository.DeletePayment(paymentID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("payment not found")
+			return apperrors.NewBusinessRuleError("payment_exists", "payment not found")
 		}
 		s.logger.Error("failed to delete payment from repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
-		return errors.New("failed to delete payment")
+		return apperrors.NewSystemError("delete_payment", err)
 	}
 	return nil
 }
