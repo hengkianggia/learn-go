@@ -10,8 +10,10 @@ import (
 	"learn/internal/router"
 	seed "learn/internal/seed"
 	"log/slog"
+	"os"
 
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 )
 
 var serveCmd = &cobra.Command{
@@ -35,28 +37,26 @@ var serveCmd = &cobra.Command{
 		jobQueue.Start()
 		defer jobQueue.Stop()
 
-		// Drop table for development
-		// db.Migrator().DropTable(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{}, &model.Payment{})
+		// Environment-based migration
+		env := os.Getenv("APP_ENV")
+		if env == "development" || env == "testing" {
+			// Create enums
+			createEnums(db)
 
-		// Create the user_type enum
-		db.Exec(`DO $$ BEGIN
-			CREATE TYPE user_type AS ENUM ('organizer', 'attendee', 'administrator');
-		EXCEPTION
-			WHEN duplicate_object THEN null;
-		END $$;`)
+			// Auto migrate only in development/testing
+			db.AutoMigrate(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{},
+				&model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{},
+				&model.Payment{}, &model.OrderLineItem{})
 
-		// Create the event_status enum
-		db.Exec(`DO $$ BEGIN
-			CREATE TYPE event_status AS ENUM ('DRAFT', 'PUBLISHED', 'CANCELLED');
-		EXCEPTION
-			WHEN duplicate_object THEN null;
-		END $$;`)
+			log.Info("Auto-migration completed for development environment")
+		} else {
+			log.Info("Running in production mode - manual migrations expected")
+		}
 
-		// Migrate the schema
-		db.AutoMigrate(&model.User{}, &model.Venue{}, &model.Guest{}, &model.Event{}, &model.EventPrice{}, &model.EventGuest{}, &model.Order{}, &model.Ticket{}, &model.Payment{}, &model.OrderLineItem{})
-
-		// Seed the database
-		seed.SeedUsers(db, log)
+		// Seed the database (only in development)
+		if env == "development" {
+			seed.SeedUsers(db, log)
+		}
 
 		// 5. Setup Router with dependencies
 		r := router.SetupRouter(log, db, eventBus)
@@ -67,6 +67,22 @@ var serveCmd = &cobra.Command{
 			log.Error("failed to run server", slog.String("error", err.Error()))
 		}
 	},
+}
+
+func createEnums(db *gorm.DB) {
+	// Create the user_type enum
+	db.Exec(`DO $$ BEGIN
+		CREATE TYPE user_type AS ENUM ('organizer', 'attendee', 'administrator');
+	EXCEPTION
+		WHEN duplicate_object THEN null;
+	END $$;`)
+
+	// Create the event_status enum
+	db.Exec(`DO $$ BEGIN
+		CREATE TYPE event_status AS ENUM ('DRAFT', 'PUBLISHED', 'CANCELLED');
+	EXCEPTION
+		WHEN duplicate_object THEN null;
+	END $$;`)
 }
 
 func init() {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "learn/migrations" // Import all migrations
 	"learn/cmd"
 )
 
