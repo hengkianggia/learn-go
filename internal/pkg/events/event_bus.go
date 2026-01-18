@@ -4,6 +4,12 @@ import (
 	"sync"
 )
 
+// EventBus manages event subscriptions and dispatching
+type EventBus struct {
+	handlers map[string][]EventHandler
+	mutex    sync.RWMutex
+}
+
 // Event interface defines the contract for events
 type Event interface {
 	GetEventType() string
@@ -12,12 +18,6 @@ type Event interface {
 // EventHandler interface defines the contract for event handlers
 type EventHandler interface {
 	Handle(event Event)
-}
-
-// EventBus manages event subscriptions and dispatching
-type EventBus struct {
-	handlers map[string][]EventHandler
-	mutex    sync.RWMutex
 }
 
 // NewEventBus creates a new event bus instance

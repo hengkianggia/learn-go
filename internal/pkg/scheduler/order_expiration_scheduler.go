@@ -3,11 +3,8 @@ package scheduler
 import (
 	"learn/internal/model"
 	"learn/internal/repository"
-	"learn/internal/service"
 	"log/slog"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // OrderExpirationScheduler handles automatic cancellation of expired orders
