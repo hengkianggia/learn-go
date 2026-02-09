@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"fmt"
+	"learn/internal/model"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -21,7 +22,7 @@ func migrate004(db *gorm.DB) error {
 	}
 
 	// Check if admin user already exists
-	var existingUser User
+	var existingUser model.User
 	result = db.Where("email = ?", "admin@example.com").First(&existingUser)
 	if result.Error == nil {
 		// Admin user already exists, skip seeding
@@ -33,7 +34,7 @@ func migrate004(db *gorm.DB) error {
 			return fmt.Errorf("failed to hash password: %w", err)
 		}
 
-		adminUser := User{
+		adminUser := model.User{
 			Name:       "Administrator",
 			Email:      "admin@example.com",
 			Password:   string(hashedPassword),

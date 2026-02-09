@@ -2,7 +2,6 @@ package controller
 
 import (
 	"learn/internal/dto"
-	apperrors "learn/internal/errors"
 	"learn/internal/model"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
@@ -50,33 +49,8 @@ func (ctrl *paymentController) CreatePayment(c *gin.Context) {
 	payment, err := ctrl.paymentService.CreatePayment(&req, user.(model.User).ID)
 	if err != nil {
 		// Handle different types of errors appropriately
-		switch appErr := err.(type) {
-		case apperrors.ValidationError:
-			ctrl.logger.Info("Validation error in create payment",
-				slog.String("field", appErr.Field),
-				slog.String("message", appErr.Message),
-				slog.Any("value", appErr.Value))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.BusinessRuleError:
-			ctrl.logger.Info("Business rule error in create payment",
-				slog.String("rule", appErr.Rule),
-				slog.String("message", appErr.Message))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.SystemError:
-			ctrl.logger.Error("System error in create payment",
-				slog.String("operation", appErr.Operation),
-				slog.String("message", appErr.Message),
-				slog.Any("error", appErr.Err))
-			response.SendInternalServerError(c, ctrl.logger, appErr)
-			return
-		default:
-			// For any other error types, treat as internal server error
-			ctrl.logger.Error("Unknown error in create payment", slog.String("error", err.Error()))
-			response.SendInternalServerError(c, ctrl.logger, err)
-			return
-		}
+		response.HandleAppError(c, err, ctrl.logger, "create payment")
+		return
 	}
 
 	// Create the response DTO
@@ -103,33 +77,8 @@ func (ctrl *paymentController) GetPaymentByID(c *gin.Context) {
 	payment, err := ctrl.paymentService.GetPaymentByID(uint(paymentID))
 	if err != nil {
 		// Handle different types of errors appropriately
-		switch appErr := err.(type) {
-		case apperrors.ValidationError:
-			ctrl.logger.Info("Validation error in get payment by ID",
-				slog.String("field", appErr.Field),
-				slog.String("message", appErr.Message),
-				slog.Any("value", appErr.Value))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.BusinessRuleError:
-			ctrl.logger.Info("Business rule error in get payment by ID",
-				slog.String("rule", appErr.Rule),
-				slog.String("message", appErr.Message))
-			response.SendNotFoundError(c, appErr.Error())
-			return
-		case apperrors.SystemError:
-			ctrl.logger.Error("System error in get payment by ID",
-				slog.String("operation", appErr.Operation),
-				slog.String("message", appErr.Message),
-				slog.Any("error", appErr.Err))
-			response.SendInternalServerError(c, ctrl.logger, appErr)
-			return
-		default:
-			// For any other error types, treat as internal server error
-			ctrl.logger.Error("Unknown error in get payment by ID", slog.String("error", err.Error()))
-			response.SendInternalServerError(c, ctrl.logger, err)
-			return
-		}
+		response.HandleAppErrorWithNotFound(c, err, ctrl.logger, "get payment by ID")
+		return
 	}
 
 	// Create the response DTO
@@ -156,33 +105,8 @@ func (ctrl *paymentController) GetPaymentByOrderID(c *gin.Context) {
 	payment, err := ctrl.paymentService.GetPaymentByOrderID(uint(orderID))
 	if err != nil {
 		// Handle different types of errors appropriately
-		switch appErr := err.(type) {
-		case apperrors.ValidationError:
-			ctrl.logger.Info("Validation error in get payment by order ID",
-				slog.String("field", appErr.Field),
-				slog.String("message", appErr.Message),
-				slog.Any("value", appErr.Value))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.BusinessRuleError:
-			ctrl.logger.Info("Business rule error in get payment by order ID",
-				slog.String("rule", appErr.Rule),
-				slog.String("message", appErr.Message))
-			response.SendNotFoundError(c, appErr.Error())
-			return
-		case apperrors.SystemError:
-			ctrl.logger.Error("System error in get payment by order ID",
-				slog.String("operation", appErr.Operation),
-				slog.String("message", appErr.Message),
-				slog.Any("error", appErr.Err))
-			response.SendInternalServerError(c, ctrl.logger, appErr)
-			return
-		default:
-			// For any other error types, treat as internal server error
-			ctrl.logger.Error("Unknown error in get payment by order ID", slog.String("error", err.Error()))
-			response.SendInternalServerError(c, ctrl.logger, err)
-			return
-		}
+		response.HandleAppErrorWithNotFound(c, err, ctrl.logger, "get payment by order ID")
+		return
 	}
 
 	// Create the response DTO
@@ -215,33 +139,8 @@ func (ctrl *paymentController) UpdatePayment(c *gin.Context) {
 	payment, err := ctrl.paymentService.UpdatePayment(uint(paymentID), &req)
 	if err != nil {
 		// Handle different types of errors appropriately
-		switch appErr := err.(type) {
-		case apperrors.ValidationError:
-			ctrl.logger.Info("Validation error in update payment",
-				slog.String("field", appErr.Field),
-				slog.String("message", appErr.Message),
-				slog.Any("value", appErr.Value))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.BusinessRuleError:
-			ctrl.logger.Info("Business rule error in update payment",
-				slog.String("rule", appErr.Rule),
-				slog.String("message", appErr.Message))
-			response.SendNotFoundError(c, appErr.Error())
-			return
-		case apperrors.SystemError:
-			ctrl.logger.Error("System error in update payment",
-				slog.String("operation", appErr.Operation),
-				slog.String("message", appErr.Message),
-				slog.Any("error", appErr.Err))
-			response.SendInternalServerError(c, ctrl.logger, appErr)
-			return
-		default:
-			// For any other error types, treat as internal server error
-			ctrl.logger.Error("Unknown error in update payment", slog.String("error", err.Error()))
-			response.SendInternalServerError(c, ctrl.logger, err)
-			return
-		}
+		response.HandleAppErrorWithNotFound(c, err, ctrl.logger, "update payment")
+		return
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Payment updated successfully", payment)
@@ -264,33 +163,8 @@ func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
 	payment, err := ctrl.paymentService.UpdatePaymentStatus(uint(paymentID), req.Status)
 	if err != nil {
 		// Handle different types of errors appropriately
-		switch appErr := err.(type) {
-		case apperrors.ValidationError:
-			ctrl.logger.Info("Validation error in update payment status",
-				slog.String("field", appErr.Field),
-				slog.String("message", appErr.Message),
-				slog.Any("value", appErr.Value))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.BusinessRuleError:
-			ctrl.logger.Info("Business rule error in update payment status",
-				slog.String("rule", appErr.Rule),
-				slog.String("message", appErr.Message))
-			response.SendNotFoundError(c, appErr.Error())
-			return
-		case apperrors.SystemError:
-			ctrl.logger.Error("System error in update payment status",
-				slog.String("operation", appErr.Operation),
-				slog.String("message", appErr.Message),
-				slog.Any("error", appErr.Err))
-			response.SendInternalServerError(c, ctrl.logger, appErr)
-			return
-		default:
-			// For any other error types, treat as internal server error
-			ctrl.logger.Error("Unknown error in update payment status", slog.String("error", err.Error()))
-			response.SendInternalServerError(c, ctrl.logger, err)
-			return
-		}
+		response.HandleAppErrorWithNotFound(c, err, ctrl.logger, "update payment status")
+		return
 	}
 
 	paymentResponse := dto.PaymentResponse{
@@ -316,33 +190,8 @@ func (ctrl *paymentController) DeletePayment(c *gin.Context) {
 	err = ctrl.paymentService.DeletePayment(uint(paymentID))
 	if err != nil {
 		// Handle different types of errors appropriately
-		switch appErr := err.(type) {
-		case apperrors.ValidationError:
-			ctrl.logger.Info("Validation error in delete payment",
-				slog.String("field", appErr.Field),
-				slog.String("message", appErr.Message),
-				slog.Any("value", appErr.Value))
-			response.SendBadRequestError(c, appErr.Error())
-			return
-		case apperrors.BusinessRuleError:
-			ctrl.logger.Info("Business rule error in delete payment",
-				slog.String("rule", appErr.Rule),
-				slog.String("message", appErr.Message))
-			response.SendNotFoundError(c, appErr.Error())
-			return
-		case apperrors.SystemError:
-			ctrl.logger.Error("System error in delete payment",
-				slog.String("operation", appErr.Operation),
-				slog.String("message", appErr.Message),
-				slog.Any("error", appErr.Err))
-			response.SendInternalServerError(c, ctrl.logger, appErr)
-			return
-		default:
-			// For any other error types, treat as internal server error
-			ctrl.logger.Error("Unknown error in delete payment", slog.String("error", err.Error()))
-			response.SendInternalServerError(c, ctrl.logger, err)
-			return
-		}
+		response.HandleAppErrorWithNotFound(c, err, ctrl.logger, "delete payment")
+		return
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Payment deleted successfully", nil)

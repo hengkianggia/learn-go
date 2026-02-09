@@ -1,0 +1,32 @@
+# Version Control
+.git
+.gitignore
+
+# IDE & Editor Directories
+.idea
+.vscode
+.gemini
+.qwen
+.agents
+
+# Build Artifacts
+bin/
+learn.exe
+learn
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary Files
+tmp/
+*.log
+coverage.out
+coverage.html
+.env
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

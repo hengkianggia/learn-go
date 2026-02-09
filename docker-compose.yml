@@ -1,0 +1,57 @@
+services:
+    # 1. Aplikasi Utama (Golang)
+    app:
+        build: .
+        container_name: learn-go-app
+        ports:
+            - "8080:8080"
+        depends_on:
+            - db
+            - redis
+        environment:
+            - APP_ENV=development
+            - DB_HOST=db
+            - DB_PORT=5432
+            - DB_USER=postgres
+            - DB_PASSWORD=postgres
+            - DB_NAME=learngo
+            - REDIS_ADDR=redis:6379
+            - REDIS_PASSWORD=
+            - REDIS_DB=0
+            - JWT_SECRET_KEY=rahasia_negara_api # Ganti dengan yang aman
+        networks:
+            - learn-network
+
+    # 2. Database PostgreSQL
+    db:
+        image: postgres:15-alpine
+        container_name: postgres-learn
+        ports:
+            - "5432:5432" # Expose ke localhost agar bisa diakses DB Manager (DBeaver/pgAdmin)
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=learngo
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - learn-network
+
+    # 3. Redis
+    redis:
+        image: redis:7-alpine
+        container_name: learn-go-redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            - learn-network
+
+networks:
+    learn-network:
+        driver: bridge
+
+volumes:
+    postgres_data:
+    redis_data:

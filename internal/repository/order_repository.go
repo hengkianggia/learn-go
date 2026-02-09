@@ -67,11 +67,16 @@ func (r *orderRepository) CreateOrderInTransaction(order *model.Order, prices []
 			if !ok {
 				return errors.New("price not found for order line item")
 			}
+
+			// Calculate total price for this line item
+			lineItemTotalPrice := price.Price * int64(quantity)
+
 			orderLineItems = append(orderLineItems, model.OrderLineItem{
 				OrderID:      order.ID,
 				EventPriceID: priceID,
 				Quantity:     quantity,
 				PricePerUnit: price.Price,
+				TotalPrice:   lineItemTotalPrice,
 			})
 		}
 		if err := tx.Create(&orderLineItems).Error; err != nil {

@@ -9,21 +9,22 @@ import (
 )
 
 type Config struct {
-	DBHost            string `mapstructure:"DB_HOST"`
-	DBPort            string `mapstructure:"DB_PORT"`
-	DBUser            string `mapstructure:"DB_USER"`
-	DBPassword        string `mapstructure:"DB_PASSWORD"`
-	DBName            string `mapstructure:"DB_NAME"`
-	JWTSecretKey      string `mapstructure:"JWT_SECRET_KEY"`
+	DBHost       string `mapstructure:"DB_HOST"`
+	DBPort       string `mapstructure:"DB_PORT"`
+	DBUser       string `mapstructure:"DB_USER"`
+	DBPassword   string `mapstructure:"DB_PASSWORD"`
+	DBName       string `mapstructure:"DB_NAME"`
+	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 
 	DBMaxIdleConns    int           `mapstructure:"DB_MAX_IDLE_CONNS"`
 	DBMaxOpenConns    int           `mapstructure:"DB_MAX_OPEN_CONNS"`
 	DBConnMaxLifetime time.Duration `mapstructure:"DB_CONN_MAX_LIFETIME"`
 	DBConnMaxIdleTime time.Duration `mapstructure:"DB_CONN_MAX_IDLE_TIME"`
 
-	RedisAddr         string `mapstructure:"REDIS_ADDR"`
-	RedisPassword     string `mapstructure:"REDIS_PASSWORD"`
-	RedisDB           int    `mapstructure:"REDIS_DB"`
+	RedisAddr     string `mapstructure:"REDIS_ADDR"`
+	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
+	RedisDB       int    `mapstructure:"REDIS_DB"`
+	AppEnv        string `mapstructure:"APP_ENV"`
 }
 
 var AppConfig Config
@@ -36,6 +37,7 @@ func InitConfig(logger *slog.Logger) {
 
 	v.AutomaticEnv()
 
+	v.SetDefault("APP_ENV", "development")
 	v.SetDefault("DB_MAX_IDLE_CONNS", 10)
 	v.SetDefault("DB_MAX_OPEN_CONNS", 100)
 	v.SetDefault("DB_CONN_MAX_LIFETIME", 5*time.Minute)
@@ -61,4 +63,3 @@ func InitConfig(logger *slog.Logger) {
 
 	logger.Info("Configuration loaded successfully")
 }
-

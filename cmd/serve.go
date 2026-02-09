@@ -10,7 +10,6 @@ import (
 	"learn/internal/router"
 	seed "learn/internal/seed"
 	"log/slog"
-	"os"
 
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
@@ -38,7 +37,7 @@ var serveCmd = &cobra.Command{
 		defer jobQueue.Stop()
 
 		// Environment-based migration
-		env := os.Getenv("APP_ENV")
+		env := config.AppConfig.AppEnv
 		if env == "development" || env == "testing" {
 			// Create enums
 			createEnums(db)

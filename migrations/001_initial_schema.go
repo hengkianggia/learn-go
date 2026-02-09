@@ -43,7 +43,7 @@ func migrate001(db *gorm.DB) error {
 	// Record migration completion
 	migration := MigrationHistory{
 		Version:     "001",
-		AppliedAt:   "NOW()",
+		AppliedAt:   "now()",
 		Description: "Create initial schema",
 	}
 

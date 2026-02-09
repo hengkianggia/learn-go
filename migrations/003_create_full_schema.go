@@ -27,10 +27,14 @@ func migrate003(db *gorm.DB) error {
             updated_at TIMESTAMP WITH TIME ZONE,
             deleted_at TIMESTAMP WITH TIME ZONE,
             name VARCHAR(255) NOT NULL,
-            address TEXT,
+            slug VARCHAR(255) UNIQUE NOT NULL,
+            address TEXT NOT NULL,
             city VARCHAR(255),
+            state VARCHAR(255),
+            zip_code VARCHAR(255),
             country VARCHAR(255),
-            capacity INTEGER
+            capacity INTEGER,
+            is_active BOOLEAN DEFAULT TRUE
         )`,
 
 		`CREATE TABLE IF NOT EXISTS guests (
@@ -39,6 +43,7 @@ func migrate003(db *gorm.DB) error {
             updated_at TIMESTAMP WITH TIME ZONE,
             deleted_at TIMESTAMP WITH TIME ZONE,
             name VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) UNIQUE NOT NULL,
             bio TEXT,
             photo_url VARCHAR(255),
             social_media TEXT
@@ -53,7 +58,7 @@ func migrate003(db *gorm.DB) error {
             name VARCHAR(255) NOT NULL,
             slug VARCHAR(255) UNIQUE,
             description TEXT,
-            event_start_at TIMESTAMP WITH TIME ZONE,
+            event_start_at TIMESTAMP WITH TIME ZONE NOT NULL,
             status event_status DEFAULT 'DRAFT',
             sales_start_date TIMESTAMP WITH TIME ZONE,
             sales_end_date TIMESTAMP WITH TIME ZONE
@@ -84,7 +89,7 @@ func migrate003(db *gorm.DB) error {
             deleted_at TIMESTAMP WITH TIME ZONE,
             user_id INTEGER NOT NULL,
             total_price BIGINT NOT NULL,
-            status VARCHAR(50) DEFAULT 'pending',
+            status VARCHAR(50) DEFAULT 'PENDING' NOT NULL,
             payment_due TIMESTAMP WITH TIME ZONE,
             expired_at TIMESTAMP WITH TIME ZONE,
             cancelled_at TIMESTAMP WITH TIME ZONE,
@@ -99,8 +104,10 @@ func migrate003(db *gorm.DB) error {
             order_id INTEGER NOT NULL,
             event_price_id INTEGER NOT NULL,
             price BIGINT NOT NULL,
-            type VARCHAR(255),
-            ticket_code VARCHAR(255),
+            type VARCHAR(255) NOT NULL,
+            ticket_code VARCHAR(255) UNIQUE NOT NULL,
+            seat_number VARCHAR(255),
+            is_scanned BOOLEAN DEFAULT FALSE,
             owner_name VARCHAR(255),
             owner_email VARCHAR(255)
         )`,
@@ -111,9 +118,11 @@ func migrate003(db *gorm.DB) error {
             updated_at TIMESTAMP WITH TIME ZONE,
             deleted_at TIMESTAMP WITH TIME ZONE,
             order_id INTEGER NOT NULL,
-            method VARCHAR(100),
+            payment_method VARCHAR(50) NOT NULL,
+            transaction_id VARCHAR(255) UNIQUE NOT NULL,
             amount BIGINT,
-            status VARCHAR(50),
+            payment_status VARCHAR(50) NOT NULL,
+            payment_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             notes TEXT
         )`,
 
@@ -139,13 +148,15 @@ func migrate003(db *gorm.DB) error {
 	// Add indexes
 	indexQueries := []string{
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_slug ON events(slug)`,
+		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_venues_slug ON venues(slug)`,
+		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_guests_slug ON guests(slug)`,
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_user_id ON orders(user_id)`,
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_tickets_order_id ON tickets(order_id)`,
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_order_id ON payments(order_id)`,
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_event_prices_event_id ON event_prices(event_id)`,
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_events_deleted_at ON events(deleted_at)`,
 		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_status ON orders(status)`,
-		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_status ON payments(status)`,
+		`CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_payments_payment_status ON payments(payment_status)`,
 	}
 
 	for _, query := range indexQueries {
@@ -168,99 +179,4 @@ func migrate003(db *gorm.DB) error {
 
 	fmt.Println("Migration 003 completed successfully")
 	return nil
-}
-
-// Define the model structs for this migration
-type User struct {
-	ID             uint   `gorm:"primaryKey"`
-	Name           string `gorm:"not null"`
-	Email          string `gorm:"unique;not null"`
-	Password       string `gorm:"not null"`
-	PhoneNumber    string
-	ProfilePicture string
-	UserType       string `gorm:"default:'attendee'"`
-	IsVerified     bool   `gorm:"default:false"`
-}
-
-type Venue struct {
-	ID       uint   `gorm:"primaryKey"`
-	Name     string `gorm:"not null"`
-	Address  string
-	City     string
-	Country  string
-	Capacity int
-}
-
-type Guest struct {
-	ID          uint   `gorm:"primaryKey"`
-	Name        string `gorm:"not null"`
-	Bio         string
-	PhotoURL    string `gorm:"column:photo_url"`
-	SocialMedia string
-}
-
-type Event struct {
-	ID             uint   `gorm:"primaryKey"`
-	VenueID        uint   `gorm:"not null"`
-	Name           string `gorm:"not null"`
-	Slug           string `gorm:"uniqueIndex;not null"`
-	Description    string
-	EventStartAt   string `gorm:"column:event_start_at"`
-	Status         string `gorm:"default:'DRAFT'"`
-	SalesStartDate string `gorm:"column:sales_start_date"`
-	SalesEndDate   string `gorm:"column:sales_end_date"`
-}
-
-type EventPrice struct {
-	ID      uint   `gorm:"primaryKey"`
-	EventID uint   `gorm:"not null"`
-	Name    string `gorm:"not null"`
-	Price   int64  `gorm:"not null"`
-	Quota   int    `gorm:"not null"`
-}
-
-type EventGuest struct {
-	EventID      uint `gorm:"primaryKey"`
-	GuestID      uint `gorm:"primaryKey"`
-	SessionTitle string
-}
-
-type Order struct {
-	ID          uint   `gorm:"primaryKey"`
-	UserID      uint   `gorm:"not null"`
-	TotalPrice  int64  `gorm:"not null"`
-	Status      string `gorm:"default:'pending'"`
-	PaymentDue  string `gorm:"column:payment_due"`
-	ExpiredAt   string `gorm:"column:expired_at"`
-	CancelledAt string `gorm:"column:cancelled_at"`
-	CompletedAt string `gorm:"column:completed_at"`
-}
-
-type Ticket struct {
-	ID           uint  `gorm:"primaryKey"`
-	OrderID      uint  `gorm:"not null"`
-	EventPriceID uint  `gorm:"not null"`
-	Price        int64 `gorm:"not null"`
-	Type         string
-	TicketCode   string `gorm:"column:ticket_code"`
-	OwnerName    string `gorm:"column:owner_name"`
-	OwnerEmail   string `gorm:"column:owner_email"`
-}
-
-type Payment struct {
-	ID      uint `gorm:"primaryKey"`
-	OrderID uint `gorm:"not null"`
-	Method  string
-	Amount  int64
-	Status  string
-	Notes   string
-}
-
-type OrderLineItem struct {
-	ID           uint  `gorm:"primaryKey"`
-	OrderID      uint  `gorm:"not null"`
-	EventPriceID uint  `gorm:"not null"`
-	Quantity     int   `gorm:"not null"`
-	PricePerUnit int64 `gorm:"not null"`
-	TotalPrice   int64 `gorm:"not null"`
 }
