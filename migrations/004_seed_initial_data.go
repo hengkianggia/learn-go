@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 	"learn/internal/model"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -52,7 +53,7 @@ func migrate004(db *gorm.DB) error {
 	// Record migration completion
 	migration := MigrationHistory{
 		Version:     "004",
-		AppliedAt:   "NOW()",
+		AppliedAt:   time.Now().Format(time.RFC3339),
 		Description: "Seed initial data",
 	}
 

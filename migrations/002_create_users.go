@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -55,7 +56,7 @@ func migrate002(db *gorm.DB) error {
 	// Record migration completion
 	migration := MigrationHistory{
 		Version:     "002",
-		AppliedAt:   "NOW()",
+		AppliedAt:   time.Now().Format(time.RFC3339),
 		Description: "Create user table",
 	}
 

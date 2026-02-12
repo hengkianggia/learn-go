@@ -10,6 +10,7 @@ type CreateVenueInput struct {
 	ZipCode  string `json:"zip_code"`
 	Capacity int    `json:"capacity"`
 	IsActive bool   `json:"is_active,omitempty"`
+	Country  string `json:"country,omitempty"`
 }
 
 type UpdateVenueInput struct {
@@ -20,6 +21,7 @@ type UpdateVenueInput struct {
 	ZipCode  *string `json:"zip_code,omitempty"`
 	Capacity *int    `json:"capacity,omitempty"`
 	IsActive *bool   `json:"is_active,omitempty"`
+	Country  *string `json:"country,omitempty"`
 }
 
 type VenueResponse struct {
@@ -32,6 +34,7 @@ type VenueResponse struct {
 	ZipCode  string `json:"zip_code"`
 	Capacity int    `json:"capacity"`
 	IsActive bool   `json:"is_active"`
+	Country  string `json:"country"`
 }
 
 func ToVenueResponse(venue model.Venue) VenueResponse {
@@ -45,6 +48,7 @@ func ToVenueResponse(venue model.Venue) VenueResponse {
 		ZipCode:  venue.ZipCode,
 		Capacity: venue.Capacity,
 		IsActive: venue.IsActive,
+		Country:  venue.Country,
 	}
 }
 

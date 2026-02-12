@@ -54,6 +54,7 @@ func (s *venueService) CreateVenue(input dto.CreateVenueInput) (*model.Venue, er
 		ZipCode:  input.ZipCode,
 		Capacity: input.Capacity,
 		IsActive: input.IsActive,
+		Country:  input.Country,
 	}
 
 	err := s.venueRepo.CreateVenue(&venue)
@@ -95,6 +96,9 @@ func (s *venueService) UpdateVenue(slug string, input dto.UpdateVenueInput) (*mo
 	}
 	if input.IsActive != nil {
 		venue.IsActive = *input.IsActive
+	}
+	if input.Country != nil {
+		venue.Country = *input.Country
 	}
 
 	if err := s.venueRepo.UpdateVenue(venue); err != nil {

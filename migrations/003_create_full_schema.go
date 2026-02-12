@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -169,7 +170,7 @@ func migrate003(db *gorm.DB) error {
 	// Record migration completion
 	migration := MigrationHistory{
 		Version:     "003",
-		AppliedAt:   "NOW()",
+		AppliedAt:   time.Now().Format(time.RFC3339),
 		Description: "Create full schema tables",
 	}
 

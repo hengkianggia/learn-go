@@ -40,8 +40,8 @@ type EventGuest struct {
 type EventPrice struct {
 	gorm.Model
 	EventID uint   `gorm:"not null"`
-	Name    string `gorm:"not null"` // e.g., "Presale", "VIP"
-	Price   int64  `gorm:"not null"` // Price in smallest currency unit (e.g., cents)
+	Name    string `gorm:"not null"`
+	Price   int64  `gorm:"not null"`
 	Quota   int    `gorm:"not null"`
 	Tickets []Ticket
 }

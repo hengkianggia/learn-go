@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	_ "learn/migrations" // Import all migrations
+	"os"
 
 	"github.com/spf13/cobra"
 )

@@ -72,6 +72,31 @@ type EventResponseByVenue struct {
 	EventResponseBase
 }
 
+type EventSimplePriceResponse struct {
+	Name  string `json:"name"`
+	Price int    `json:"price"`
+}
+
+type VenueSimpleResponse struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	City string `json:"city"`
+}
+
+type EventSimpleResponse struct {
+	ID             uint                       `json:"id"`
+	Slug           string                     `json:"slug"`
+	Name           string                     `json:"name"`
+	Description    string                     `json:"description"`
+	EventStartAt   time.Time                  `json:"event_start_at"`
+	Status         model.EventStatus          `json:"status"`
+	SalesStartDate time.Time                  `json:"sales_start_date"`
+	SalesEndDate   time.Time                  `json:"sales_end_date"`
+	Venue          VenueSimpleResponse        `json:"venue"`
+	Prices         []EventSimplePriceResponse `json:"prices"`
+}
+
 func ToEventPriceResponse(price model.EventPrice) EventPriceResponse {
 	return EventPriceResponse{
 		ID:    price.ID,
@@ -134,6 +159,49 @@ func ToEventResponsesByVenue(events []model.Event) []EventResponseByVenue {
 	var responses []EventResponseByVenue
 	for _, event := range events {
 		responses = append(responses, ToEventResponseByVenue(event))
+	}
+	return responses
+}
+
+func ToVenueSimpleResponse(venue model.Venue) VenueSimpleResponse {
+	return VenueSimpleResponse{
+		ID:   venue.ID,
+		Name: venue.Name,
+		Slug: venue.Slug,
+		City: venue.City,
+	}
+}
+
+func ToEventSimpleResponse(event model.Event) EventSimpleResponse {
+	return EventSimpleResponse{
+		ID:             event.ID,
+		Slug:           event.Slug,
+		Name:           event.Name,
+		Description:    event.Description,
+		EventStartAt:   event.EventStartAt,
+		Status:         event.Status,
+		SalesStartDate: event.SalesStartDate,
+		SalesEndDate:   event.SalesEndDate,
+		Venue:          ToVenueSimpleResponse(event.Venue),
+		Prices:         toEventSimplePriceResponses(event.Prices),
+	}
+}
+
+func toEventSimplePriceResponses(prices []model.EventPrice) []EventSimplePriceResponse {
+	var responses []EventSimplePriceResponse
+	for _, p := range prices {
+		responses = append(responses, EventSimplePriceResponse{
+			Name:  p.Name,
+			Price: int(p.Price),
+		})
+	}
+	return responses
+}
+
+func ToEventSimpleResponses(events []model.Event) []EventSimpleResponse {
+	var responses []EventSimpleResponse
+	for _, event := range events {
+		responses = append(responses, ToEventSimpleResponse(event))
 	}
 	return responses
 }

@@ -14,6 +14,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type eventController struct {
+	eventService service.EventService
+	logger       *slog.Logger
+	db           *gorm.DB
+}
+
 type EventController interface {
 	CreateEvent(c *gin.Context)
 	GetAllEvents(c *gin.Context)
@@ -21,12 +27,6 @@ type EventController interface {
 	GetEventsByVenueSlug(c *gin.Context)
 	GetEventsByGuestSlug(c *gin.Context)
 	UpdateEvent(c *gin.Context)
-}
-
-type eventController struct {
-	eventService service.EventService
-	logger       *slog.Logger
-	db           *gorm.DB
 }
 
 func NewEventController(eventService service.EventService, logger *slog.Logger, db *gorm.DB) EventController {
@@ -41,6 +41,27 @@ func (ctrl *eventController) CreateEvent(c *gin.Context) {
 		return
 	}
 
+	var venue model.Venue
+	result := ctrl.db.First(&venue, input.VenueID)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			response.SendNotFoundError(c, "Venue not found")
+			return
+		}
+		response.SendInternalServerError(c, ctrl.logger, result.Error)
+		return
+	}
+
+	totalTicketCapacity := 0
+	for _, ticket := range input.Prices {
+		totalTicketCapacity += ticket.Quota
+	}
+
+	if totalTicketCapacity > venue.Capacity {
+		response.SendBadRequestError(c, "Total ticket capacity exceeds venue capacity")
+		return
+	}
+
 	event, err := ctrl.eventService.CreateEvent(input)
 	if err != nil {
 		response.SendInternalServerError(c, ctrl.logger, err)
@@ -52,7 +73,7 @@ func (ctrl *eventController) CreateEvent(c *gin.Context) {
 
 func (ctrl *eventController) GetAllEvents(c *gin.Context) {
 	var events []model.Event
-	db := ctrl.db.Preload("Venue").Preload("EventGuests.Guest").Preload("Prices")
+	db := ctrl.db.Preload("Venue").Preload("Prices")
 	paginatedResult, err := pagination.Paginate(c, db, &model.Event{}, &events)
 	if err != nil {
 		response.SendInternalServerError(c, ctrl.logger, err)
@@ -60,9 +81,9 @@ func (ctrl *eventController) GetAllEvents(c *gin.Context) {
 	}
 
 	if len(events) == 0 {
-		paginatedResult.Data = make([]dto.EventResponse, 0)
+		paginatedResult.Data = make([]dto.EventSimpleResponse, 0)
 	} else {
-		paginatedResult.Data = dto.ToEventResponses(events)
+		paginatedResult.Data = dto.ToEventSimpleResponses(events)
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
