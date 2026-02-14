@@ -81,7 +81,6 @@ type VenueSimpleResponse struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
 	Slug string `json:"slug"`
-	City string `json:"city"`
 }
 
 type EventSimpleResponse struct {
@@ -168,7 +167,6 @@ func ToVenueSimpleResponse(venue model.Venue) VenueSimpleResponse {
 		ID:   venue.ID,
 		Name: venue.Name,
 		Slug: venue.Slug,
-		City: venue.City,
 	}
 }
 

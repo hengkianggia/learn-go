@@ -53,7 +53,7 @@ func sendError(c *gin.Context, statusCode int, code, message string, details int
 // --- Specific Success Helpers ---
 
 func SendLoginSuccess(c *gin.Context, token string) {
-	c.SetCookie("jwt_token", token, int(24*time.Hour/time.Second), "/", "localhost", false, true)
+	c.SetCookie("jwt_token", token, int(1*time.Hour/time.Second), "/", "localhost", false, true)
 	SendSuccess(c, http.StatusOK, "Login successful", gin.H{"token": token})
 }
 

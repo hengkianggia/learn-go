@@ -4,6 +4,7 @@ import (
 	"errors"
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/filters"
 	"learn/internal/pkg/pagination"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
@@ -74,7 +75,15 @@ func (ctrl *eventController) CreateEvent(c *gin.Context) {
 func (ctrl *eventController) GetAllEvents(c *gin.Context) {
 	var events []model.Event
 	db := ctrl.db.Preload("Venue").Preload("Prices")
+
+	filterFuncs := []filters.FilterFunc{
+		filters.WithSearch("name"),
+	}
+
+	db = filters.ApplyFilter(db, c, filterFuncs...)
+
 	paginatedResult, err := pagination.Paginate(c, db, &model.Event{}, &events)
+
 	if err != nil {
 		response.SendInternalServerError(c, ctrl.logger, err)
 		return
@@ -101,7 +110,7 @@ func (ctrl *eventController) GetEventBySlug(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusOK, "Event retrieved successfully", dto.ToEventResponse(*event))
+	response.SendSuccess(c, http.StatusOK, "Event retrieved successfully", dto.ToEventSimpleResponse(*event))
 }
 
 func (ctrl *eventController) GetEventsByVenueSlug(c *gin.Context) {
@@ -115,9 +124,9 @@ func (ctrl *eventController) GetEventsByVenueSlug(c *gin.Context) {
 	}
 
 	if len(events) == 0 {
-		paginatedResult.Data = make([]dto.EventResponse, 0)
+		paginatedResult.Data = make([]dto.EventSimpleResponse, 0)
 	} else {
-		paginatedResult.Data = dto.ToEventResponsesByVenue(events)
+		paginatedResult.Data = dto.ToEventSimpleResponses(events)
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
@@ -134,9 +143,9 @@ func (ctrl *eventController) GetEventsByGuestSlug(c *gin.Context) {
 	}
 
 	if len(events) == 0 {
-		paginatedResult.Data = make([]dto.EventResponse, 0)
+		paginatedResult.Data = make([]dto.EventSimpleResponse, 0)
 	} else {
-		paginatedResult.Data = dto.ToEventResponses(events)
+		paginatedResult.Data = dto.ToEventSimpleResponses(events)
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/filters"
 	"learn/internal/pkg/pagination"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
@@ -50,7 +51,14 @@ func (ctrl *venueController) CreateVenue(c *gin.Context) {
 
 func (ctrl *venueController) GetAllVenues(c *gin.Context) {
 	var venues []model.Venue
-	paginatedResponse, err := pagination.Paginate(c, ctrl.db, &model.Venue{}, &venues)
+
+	filterFuncs := []filters.FilterFunc{
+		filters.WithSearch("name"),
+	}
+
+	db := filters.ApplyFilter(ctrl.db, c, filterFuncs...)
+
+	paginatedResponse, err := pagination.Paginate(c, db, &model.Venue{}, &venues)
 	if err != nil {
 		response.SendInternalServerError(c, ctrl.logger, err)
 		return
