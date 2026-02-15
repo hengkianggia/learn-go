@@ -110,7 +110,7 @@ func (ctrl *eventController) GetEventBySlug(c *gin.Context) {
 		return
 	}
 
-	response.SendSuccess(c, http.StatusOK, "Event retrieved successfully", dto.ToEventSimpleResponse(*event))
+	response.SendSuccess(c, http.StatusOK, "Event retrieved successfully", dto.ToEventResponse(*event))
 }
 
 func (ctrl *eventController) GetEventsByVenueSlug(c *gin.Context) {
