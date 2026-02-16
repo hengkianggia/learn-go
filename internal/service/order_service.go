@@ -54,15 +54,6 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 		return nil, apperrors.NewBusinessRuleError("event_sales_period", "event is not within sales period")
 	}
 
-	// Anti-spam validation: Check if user has too many pending orders recently
-	recentOrderCount, err := s.checkRecentOrders(userID)
-	if err != nil {
-		s.logger.Error("failed to check recent orders", slog.String("error", err.Error()))
-	}
-	if recentOrderCount > 5 { // Allow max 5 orders per hour
-		return nil, apperrors.NewBusinessRuleError("order_limit", "too many orders recently, please wait before placing another order")
-	}
-
 	var priceIDs []uint
 	quantityMap := make(map[uint]int)
 	totalQuantity := 0 // Track total tickets ordered
@@ -79,8 +70,17 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 	}
 
 	// Anti-abuse validation: Limit total tickets per order
-	if totalQuantity > 10 { // Maximum 10 tickets per order
-		return nil, apperrors.NewValidationError("tickets_ordered", "maximum 10 tickets allowed per order", totalQuantity)
+	if totalQuantity > 4 { // Maximum 4 tickets per order
+		return nil, apperrors.NewValidationError("tickets_ordered", "maximum 4 tickets allowed per order", totalQuantity)
+	}
+
+	// Anti-spam validation: Check if user has too many pending orders recently
+	recentOrderCount, err := s.checkRecentOrders(userID)
+	if err != nil {
+		s.logger.Error("failed to check recent orders", slog.String("error", err.Error()))
+	}
+	if recentOrderCount > 1 { // Allow max 5 orders per hour
+		return nil, apperrors.NewBusinessRuleError("order_limit", "too many orders recently, please wait before placing another order")
 	}
 
 	prices, err := s.orderRepo.GetEventPricesByIDs(priceIDs)
@@ -121,12 +121,14 @@ func (s *orderService) CreateOrder(input dto.NewOrderInput, userID uint) (*model
 	// Anti-double spending validation: Check if user is trying to order same tickets again
 	orderLockKey := "order_lock:" + strconv.FormatUint(uint64(userID), 10) + ":" + input.EventID
 	set, err := s.redis.SetNX(config.Ctx, orderLockKey, "locked", 5*time.Minute).Result()
+
 	if err != nil {
 		s.logger.Error("failed to set order lock", slog.String("error", err.Error()))
 		return nil, apperrors.NewSystemError("redis_lock", err)
 	} else if !set {
 		return nil, apperrors.NewBusinessRuleError("order_lock", "order is being processed, please wait")
 	}
+
 	defer s.redis.Del(config.Ctx, orderLockKey) // Clean up lock
 
 	order := &model.Order{

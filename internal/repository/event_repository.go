@@ -12,9 +12,11 @@ type EventRepository interface {
 	FindBySlug(slug string) (*model.Event, error)
 	CreateEventGuests(eventGuests []model.EventGuest) error
 	CreateEventPrices(eventPrices []model.EventPrice) error
-	GetEventPriceByID(id uint) (*model.EventPrice, error) // Added
+	GetEventPriceByID(id uint) (*model.EventPrice, error)
 	GetEventsByGuestSlug(guestSlug string) ([]model.Event, error)
 	UpdateEvent(event *model.Event) error
+	UpdateEventGuests(eventID uint, eventGuests []model.EventGuest) error
+	UpdateEventPrices(eventID uint, eventPrices []model.EventPrice) error
 }
 
 type eventRepository struct {
@@ -63,4 +65,36 @@ func (r *eventRepository) GetEventPriceByID(id uint) (*model.EventPrice, error) 
 	var eventPrice model.EventPrice
 	err := r.db.First(&eventPrice, id).Error
 	return &eventPrice, err
+}
+
+func (r *eventRepository) UpdateEventGuests(eventID uint, eventGuests []model.EventGuest) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete existing guests for this event
+		if err := tx.Where("event_id = ?", eventID).Delete(&model.EventGuest{}).Error; err != nil {
+			return err
+		}
+		// Create new guests
+		if len(eventGuests) > 0 {
+			if err := tx.Create(&eventGuests).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (r *eventRepository) UpdateEventPrices(eventID uint, eventPrices []model.EventPrice) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete existing prices for this event
+		if err := tx.Where("event_id = ?", eventID).Delete(&model.EventPrice{}).Error; err != nil {
+			return err
+		}
+		// Create new prices
+		if len(eventPrices) > 0 {
+			if err := tx.Create(&eventPrices).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

@@ -29,13 +29,15 @@ type CreateEventInput struct {
 }
 
 type UpdateEventInput struct {
+	VenueID        *uint              `json:"venue_id,omitempty"`
 	Name           *string            `json:"name,omitempty"`
 	Description    *string            `json:"description,omitempty"`
 	EventStartAt   *time.Time         `json:"event_start_at,omitempty"`
-	Time           *time.Time         `json:"time,omitempty"`
 	Status         *model.EventStatus `json:"status,omitempty"`
 	SalesStartDate *time.Time         `json:"sales_start_date,omitempty"`
 	SalesEndDate   *time.Time         `json:"sales_end_date,omitempty"`
+	Guests         []GuestInput       `json:"guests"`
+	Prices         []PriceInput       `json:"prices"`
 }
 
 type EventGuestResponse struct {
@@ -105,7 +107,7 @@ func ToEventPriceResponse(price model.EventPrice) EventPriceResponse {
 	}
 }
 
-func toEventResponseBase(event model.Event) EventResponseBase {
+func ToEventResponseBase(event model.Event) EventResponseBase {
 	var eventGuestResponses []EventGuestResponse
 	for _, eg := range event.EventGuests {
 		eventGuestResponses = append(eventGuestResponses, EventGuestResponse{
@@ -135,7 +137,7 @@ func toEventResponseBase(event model.Event) EventResponseBase {
 
 func ToEventResponse(event model.Event) EventResponse {
 	return EventResponse{
-		EventResponseBase: toEventResponseBase(event),
+		EventResponseBase: ToEventResponseBase(event),
 		Venue:             ToVenueResponse(event.Venue),
 	}
 }
@@ -150,7 +152,7 @@ func ToEventResponses(events []model.Event) []EventResponse {
 
 func ToEventResponseByVenue(event model.Event) EventResponseByVenue {
 	return EventResponseByVenue{
-		EventResponseBase: toEventResponseBase(event),
+		EventResponseBase: ToEventResponseBase(event),
 	}
 }
 

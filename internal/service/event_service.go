@@ -159,11 +159,63 @@ func (s *eventService) UpdateEvent(slug string, input dto.UpdateEventInput) (*mo
 		}
 		event.Status = *input.Status
 	}
+
 	if input.SalesStartDate != nil {
 		event.SalesStartDate = *input.SalesStartDate
 	}
+
 	if input.SalesEndDate != nil {
 		event.SalesEndDate = *input.SalesEndDate
+	}
+
+	if input.VenueID != nil {
+		// Check if venue exists
+		_, err := s.venueRepo.GetVenueByID(*input.VenueID)
+		if err != nil {
+			return nil, errors.New("venue not found")
+		}
+		event.VenueID = *input.VenueID
+	}
+
+	if len(input.Prices) > 0 {
+		var eventPrices []model.EventPrice
+		for _, priceInput := range input.Prices {
+			eventPrices = append(eventPrices, model.EventPrice{
+				EventID: event.ID,
+				Name:    priceInput.Name,
+				Price:   int64(priceInput.Price),
+				Quota:   priceInput.Quota,
+			})
+		}
+
+		// Update the prices
+		if err := s.eventRepo.UpdateEventPrices(event.ID, eventPrices); err != nil {
+			s.logger.Error("failed to update event prices", slog.String("error", err.Error()))
+			return nil, err
+		}
+	}
+
+	if len(input.Guests) > 0 {
+		var eventGuests []model.EventGuest
+		for _, guestInput := range input.Guests {
+			// Check if guest exists
+			_, err := s.guestRepo.GetGuestByID(guestInput.GuestID)
+			if err != nil {
+				return nil, errors.New("one or more guests not found")
+			}
+
+			eventGuests = append(eventGuests, model.EventGuest{
+				EventID:      event.ID,
+				GuestID:      guestInput.GuestID,
+				SessionTitle: guestInput.SessionTitle,
+			})
+		}
+
+		// Update the associations in the join table
+		if err := s.eventRepo.UpdateEventGuests(event.ID, eventGuests); err != nil {
+			s.logger.Error("failed to update event guests", slog.String("error", err.Error()))
+			return nil, err
+		}
 	}
 
 	if err := s.eventRepo.UpdateEvent(event); err != nil {
@@ -171,5 +223,11 @@ func (s *eventService) UpdateEvent(slug string, input dto.UpdateEventInput) (*mo
 		return nil, err
 	}
 
-	return event, nil
+	// Reload the event to get the latest associations
+	updatedEvent, err := s.eventRepo.GetEventByID(event.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedEvent, nil
 }

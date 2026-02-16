@@ -124,9 +124,9 @@ func (ctrl *eventController) GetEventsByVenueSlug(c *gin.Context) {
 	}
 
 	if len(events) == 0 {
-		paginatedResult.Data = make([]dto.EventSimpleResponse, 0)
+		paginatedResult.Data = make([]dto.EventResponse, 0)
 	} else {
-		paginatedResult.Data = dto.ToEventSimpleResponses(events)
+		paginatedResult.Data = dto.ToEventResponses(events)
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Events retrieved successfully", paginatedResult)
