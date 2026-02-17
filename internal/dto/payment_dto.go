@@ -11,15 +11,22 @@ type PaymentResponse struct {
 	OrderID       uint                `json:"order_id"`
 	PaymentMethod model.PaymentMethod `json:"payment_method"`
 	TransactionID string              `json:"transaction_id"`
+	Amount        int64               `json:"amount"`
 	PaymentStatus model.PaymentStatus `json:"payment_status"`
 	PaymentDate   time.Time           `json:"payment_date"`
+
+	// Midtrans Details
+	PaymentURL           string `json:"payment_url,omitempty"`
+	VirtualAccountNumber string `json:"virtual_account_number,omitempty"`
+	BillKey              string `json:"bill_key,omitempty"`
+	BillerCode           string `json:"biller_code,omitempty"`
+	PaymentCode          string `json:"payment_code,omitempty"`
 }
 
 // CreatePaymentRequest represents the request body for creating a new payment
 type CreatePaymentRequest struct {
 	OrderID       uint                `json:"order_id" binding:"required"`
 	PaymentMethod model.PaymentMethod `json:"payment_method" binding:"required"`
-	TransactionID string              `json:"transaction_id" binding:"required"`
 }
 
 // UpdatePaymentRequest represents the request body for updating an existing payment

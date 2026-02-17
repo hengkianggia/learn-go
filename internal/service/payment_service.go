@@ -6,13 +6,16 @@ import (
 	"learn/internal/config"
 	"learn/internal/dto"
 	apperrors "learn/internal/errors"
+	midtransGateway "learn/internal/gateway/midtrans"
 	"learn/internal/model"
 	"learn/internal/pkg/events"
 	"learn/internal/pkg/queue"
 	"learn/internal/repository"
 	"log/slog"
+	"strconv"
 	"time"
 
+	"github.com/midtrans/midtrans-go/coreapi"
 	"gorm.io/gorm"
 )
 
@@ -28,11 +31,12 @@ type PaymentService interface {
 type paymentService struct {
 	paymentRepository repository.PaymentRepository
 	orderRepository   repository.OrderRepository
-	ticketRepository  repository.TicketRepository // Added
-	eventRepository   repository.EventRepository  // Added
+	ticketRepository  repository.TicketRepository
+	eventRepository   repository.EventRepository
 	logger            *slog.Logger
 	jobQueue          *queue.JobQueue
 	eventBus          *events.EventBus
+	midtransGateway   midtransGateway.MidtransGateway // Added
 }
 
 func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repository.OrderRepository, ticketRepo repository.TicketRepository, eventRepo repository.EventRepository, logger *slog.Logger, eventBus *events.EventBus) PaymentService {
@@ -42,8 +46,9 @@ func NewPaymentService(paymentRepo repository.PaymentRepository, orderRepo repos
 		ticketRepository:  ticketRepo,
 		eventRepository:   eventRepo,
 		logger:            logger,
-		jobQueue:          queue.NewJobQueue(5, logger), // 5 workers for payment processing
+		jobQueue:          queue.NewJobQueue(5, logger),
 		eventBus:          eventBus,
+		midtransGateway:   midtransGateway.NewMidtransGateway(logger), // Initialize Gateway
 	}
 }
 
@@ -62,7 +67,7 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 		return nil, apperrors.NewBusinessRuleError("payment_authorization", "you are not authorized to pay for this order")
 	}
 
-	// Check if a payment already exists for this order (due to 1:1 relationship)
+	// Check if a payment already exists for this order
 	existingPayment, err := s.paymentRepository.GetPaymentByOrderID(req.OrderID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.logger.Error("failed to check existing payment for order", slog.Uint64("order_id", uint64(req.OrderID)), slog.String("error", err.Error()))
@@ -73,12 +78,53 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 		return nil, apperrors.NewBusinessRuleError("payment_unique", "payment already exists for this order")
 	}
 
-	// Create payment record with order total price (already in smallest currency unit)
+	// Process Payment with Midtrans
+	var midtransResp *coreapi.ChargeResponse
+	var midtransErr error
+
+	// Create unique Order ID for Midtrans (orderID-timestamp)
+	midtransOrderID := fmt.Sprintf("ORDER-%d-%d", order.ID, time.Now().Unix())
+
+	switch req.PaymentMethod {
+	case model.PaymentMethodBankTransferBCA:
+		midtransResp, midtransErr = s.midtransGateway.ChargeBankTransfer(midtransOrderID, order.TotalPrice, "bca")
+	case model.PaymentMethodBankTransferBNI:
+		midtransResp, midtransErr = s.midtransGateway.ChargeBankTransfer(midtransOrderID, order.TotalPrice, "bni")
+	case model.PaymentMethodBankTransferBRI:
+		midtransResp, midtransErr = s.midtransGateway.ChargeBankTransfer(midtransOrderID, order.TotalPrice, "bri")
+	case model.PaymentMethodGopay:
+		midtransResp, midtransErr = s.midtransGateway.ChargeGopay(midtransOrderID, order.TotalPrice)
+	case model.PaymentMethodIndomaret:
+		midtransResp, midtransErr = s.midtransGateway.ChargeIndomaret(midtransOrderID, order.TotalPrice, "Payment for Order "+strconv.Itoa(int(order.ID)))
+	default:
+		return nil, apperrors.NewBusinessRuleError("payment_method", "unsupported payment method")
+	}
+
+	if midtransErr != nil {
+		return nil, apperrors.NewSystemError("midtrans_charge", midtransErr)
+	}
+
+	// Parse Midtrans Response
 	payment := &model.Payment{
 		OrderID:       req.OrderID,
 		PaymentMethod: req.PaymentMethod,
-		TransactionID: req.TransactionID,
+		TransactionID: midtransResp.TransactionID,
 		PaymentStatus: model.PaymentStatusPending,
+	}
+
+	// Extract specific fields based on payment method
+	if len(midtransResp.VaNumbers) > 0 {
+		payment.VirtualAccountNumber = midtransResp.VaNumbers[0].VANumber
+	}
+	if len(midtransResp.Actions) > 0 {
+		for _, action := range midtransResp.Actions {
+			if action.Name == "generate-qr-code" {
+				payment.PaymentURL = action.URL
+			}
+		}
+	}
+	if midtransResp.PaymentType == "indomaret" {
+		payment.PaymentCode = midtransResp.PaymentCode
 	}
 
 	if err := s.paymentRepository.CreatePayment(payment); err != nil {
@@ -91,7 +137,7 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 		PaymentID: payment.ID,
 		OrderID:   req.OrderID,
 		Method:    req.PaymentMethod,
-		Amount:    order.TotalPrice, // Using order total as payment amount
+		Amount:    order.TotalPrice,
 		CreatedAt: time.Now(),
 	}
 	s.eventBus.Publish(paymentCreatedEvent)

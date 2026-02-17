@@ -25,6 +25,9 @@ type Config struct {
 	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
 	RedisDB       int    `mapstructure:"REDIS_DB"`
 	AppEnv        string `mapstructure:"APP_ENV"`
+
+	MidtransServerKey string `mapstructure:"MIDTRANS_SERVER_KEY"`
+	MidtransEnv       string `mapstructure:"MIDTRANS_ENV"`
 }
 
 var AppConfig Config
@@ -46,6 +49,9 @@ func InitConfig(logger *slog.Logger) {
 	v.SetDefault("REDIS_ADDR", "localhost:6379")
 	v.SetDefault("REDIS_PASSWORD", "")
 	v.SetDefault("REDIS_DB", 0)
+
+	v.SetDefault("MIDTRANS_SERVER_KEY", "")
+	v.SetDefault("MIDTRANS_ENV", "sandbox")
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

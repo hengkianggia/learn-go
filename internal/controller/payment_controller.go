@@ -54,13 +54,20 @@ func (ctrl *paymentController) CreatePayment(c *gin.Context) {
 	}
 
 	// Create the response DTO
+	// Create the response DTO
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.ID,
-		OrderID:       payment.OrderID,
-		PaymentMethod: payment.PaymentMethod,
-		TransactionID: payment.TransactionID,
-		PaymentStatus: payment.PaymentStatus,
-		PaymentDate:   payment.PaymentDate,
+		PaymentID:            payment.ID,
+		OrderID:              payment.OrderID,
+		PaymentMethod:        payment.PaymentMethod,
+		TransactionID:        payment.TransactionID,
+		Amount:               int64(payment.Order.TotalPrice),
+		PaymentStatus:        payment.PaymentStatus,
+		PaymentDate:          payment.PaymentDate,
+		PaymentURL:           payment.PaymentURL,
+		VirtualAccountNumber: payment.VirtualAccountNumber,
+		BillKey:              payment.BillKey,
+		BillerCode:           payment.BillerCode,
+		PaymentCode:          payment.PaymentCode,
 	}
 
 	response.SendSuccess(c, http.StatusCreated, "Payment created successfully", paymentResponse)
@@ -83,12 +90,18 @@ func (ctrl *paymentController) GetPaymentByID(c *gin.Context) {
 
 	// Create the response DTO
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.ID,
-		OrderID:       payment.OrderID,
-		PaymentMethod: payment.PaymentMethod,
-		TransactionID: payment.TransactionID,
-		PaymentStatus: payment.PaymentStatus,
-		PaymentDate:   payment.PaymentDate,
+		PaymentID:            payment.ID,
+		OrderID:              payment.OrderID,
+		PaymentMethod:        payment.PaymentMethod,
+		TransactionID:        payment.TransactionID,
+		Amount:               int64(payment.Order.TotalPrice),
+		PaymentStatus:        payment.PaymentStatus,
+		PaymentDate:          payment.PaymentDate,
+		PaymentURL:           payment.PaymentURL,
+		VirtualAccountNumber: payment.VirtualAccountNumber,
+		BillKey:              payment.BillKey,
+		BillerCode:           payment.BillerCode,
+		PaymentCode:          payment.PaymentCode,
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Payment retrieved successfully", paymentResponse)
@@ -110,13 +123,20 @@ func (ctrl *paymentController) GetPaymentByOrderID(c *gin.Context) {
 	}
 
 	// Create the response DTO
+	// Create the response DTO
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.ID,
-		OrderID:       payment.OrderID,
-		PaymentMethod: payment.PaymentMethod,
-		TransactionID: payment.TransactionID,
-		PaymentStatus: payment.PaymentStatus,
-		PaymentDate:   payment.PaymentDate,
+		PaymentID:            payment.ID,
+		OrderID:              payment.OrderID,
+		PaymentMethod:        payment.PaymentMethod,
+		TransactionID:        payment.TransactionID,
+		Amount:               int64(payment.Order.TotalPrice),
+		PaymentStatus:        payment.PaymentStatus,
+		PaymentDate:          payment.PaymentDate,
+		PaymentURL:           payment.PaymentURL,
+		VirtualAccountNumber: payment.VirtualAccountNumber,
+		BillKey:              payment.BillKey,
+		BillerCode:           payment.BillerCode,
+		PaymentCode:          payment.PaymentCode,
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Payment retrieved successfully for order", paymentResponse)
@@ -168,12 +188,18 @@ func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
 	}
 
 	paymentResponse := dto.PaymentResponse{
-		PaymentID:     payment.ID,
-		OrderID:       payment.OrderID,
-		PaymentMethod: payment.PaymentMethod,
-		TransactionID: payment.TransactionID,
-		PaymentStatus: payment.PaymentStatus,
-		PaymentDate:   payment.PaymentDate,
+		PaymentID:            payment.ID,
+		OrderID:              payment.OrderID,
+		PaymentMethod:        payment.PaymentMethod,
+		TransactionID:        payment.TransactionID,
+		Amount:               int64(payment.Order.TotalPrice),
+		PaymentStatus:        payment.PaymentStatus,
+		PaymentDate:          payment.PaymentDate,
+		PaymentURL:           payment.PaymentURL,
+		VirtualAccountNumber: payment.VirtualAccountNumber,
+		BillKey:              payment.BillKey,
+		BillerCode:           payment.BillerCode,
+		PaymentCode:          payment.PaymentCode,
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Payment status updated successfully", paymentResponse)

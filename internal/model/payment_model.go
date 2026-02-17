@@ -12,6 +12,13 @@ type Payment struct {
 	OrderID       uint          `gorm:"unique;not null" json:"order_id"` // Foreign Key ke Order (1:1 relationship)
 	PaymentMethod PaymentMethod `gorm:"type:varchar(50);not null" json:"payment_method"`
 	TransactionID string        `gorm:"unique;not null" json:"transaction_id"` // ID from payment gateway
+
+	// Midtrans Response Fields
+	PaymentURL           string `json:"payment_url"`
+	VirtualAccountNumber string `json:"virtual_account_number"`
+	BillKey              string `json:"bill_key"`
+	BillerCode           string `json:"biller_code"`
+	PaymentCode          string `json:"payment_code"`
 	// Amount        int64         `gorm:"not null" json:"amount"`                // Amount paid in smallest currency unit (e.g., cents)
 	PaymentStatus PaymentStatus `gorm:"type:varchar(20);not null" json:"payment_status"`
 	PaymentDate   time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"payment_date"`

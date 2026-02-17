@@ -142,6 +142,10 @@ github.com/leodido/go-urn/scim/schema
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
+# github.com/midtrans/midtrans-go v1.3.8
+## explicit; go 1.13
+github.com/midtrans/midtrans-go
+github.com/midtrans/midtrans-go/coreapi
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 ## explicit
 github.com/modern-go/concurrent
