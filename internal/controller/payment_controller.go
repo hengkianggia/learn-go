@@ -24,6 +24,7 @@ type PaymentController interface {
 	UpdatePayment(c *gin.Context)
 	UpdatePaymentStatus(c *gin.Context)
 	DeletePayment(c *gin.Context)
+	HandleNotification(c *gin.Context)
 }
 
 func NewPaymentController(paymentService service.PaymentService, logger *slog.Logger) PaymentController {
@@ -221,4 +222,24 @@ func (ctrl *paymentController) DeletePayment(c *gin.Context) {
 	}
 
 	response.SendSuccess(c, http.StatusOK, "Payment deleted successfully", nil)
+}
+
+func (ctrl *paymentController) HandleNotification(c *gin.Context) {
+	var notificationPayload map[string]interface{}
+	if err := c.ShouldBindJSON(&notificationPayload); err != nil {
+		response.SendBadRequestError(c, err.Error())
+		return
+	}
+
+	err := ctrl.paymentService.HandleNotification(notificationPayload)
+	if err != nil {
+		// Log error but generally return OK to Midtrans unless it's a critical error where retry is needed
+		// But usually we return 200 OK after processing
+		// If application error, we might want to return 500 to trigger retry?
+		// Midtrans retries on non-2xx.
+		response.HandleAppError(c, err, ctrl.logger, "handle notification")
+		return
+	}
+
+	response.SendSuccess(c, http.StatusOK, "Notification processed", nil)
 }

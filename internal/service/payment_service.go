@@ -26,6 +26,7 @@ type PaymentService interface {
 	UpdatePayment(paymentID uint, req *dto.UpdatePaymentRequest) (*model.Payment, error)
 	UpdatePaymentStatus(paymentID uint, status model.PaymentStatus) (*model.Payment, error)
 	DeletePayment(paymentID uint) error
+	HandleNotification(payload map[string]interface{}) error
 }
 
 type paymentService struct {

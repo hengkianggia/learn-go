@@ -18,6 +18,7 @@ type MidtransGateway interface {
 	ChargeBankTransfer(orderID string, amount int64, bank string) (*coreapi.ChargeResponse, error)
 	ChargeGopay(orderID string, amount int64) (*coreapi.ChargeResponse, error)
 	ChargeIndomaret(orderID string, amount int64, message string) (*coreapi.ChargeResponse, error)
+	VerifyPaymentNotification(payload map[string]interface{}) (bool, error)
 }
 
 func NewMidtransGateway(logger *slog.Logger) MidtransGateway {

@@ -12,6 +12,7 @@ type PaymentRepository interface {
 	CreatePayment(payment *model.Payment) error
 	GetPaymentByID(paymentID uint) (*model.Payment, error)
 	GetPaymentByOrderID(orderID uint) (*model.Payment, error)
+	GetPaymentByTransactionID(transactionID string) (*model.Payment, error)
 	UpdatePayment(payment *model.Payment) error
 	DeletePayment(paymentID uint) error
 	GetRedisClient() *redis.Client
@@ -55,4 +56,12 @@ func (r *paymentRepository) UpdatePayment(payment *model.Payment) error {
 
 func (r *paymentRepository) DeletePayment(paymentID uint) error {
 	return r.db.Delete(&model.Payment{}, paymentID).Error
+}
+
+func (r *paymentRepository) GetPaymentByTransactionID(transactionID string) (*model.Payment, error) {
+	var payment model.Payment
+	if err := r.db.Where("transaction_id = ?", transactionID).First(&payment).Error; err != nil {
+		return nil, err
+	}
+	return &payment, nil
 }

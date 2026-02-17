@@ -21,6 +21,9 @@ func SetupPaymentRoutes(apiV1 *gin.RouterGroup, db *gorm.DB, logger *slog.Logger
 	paymentController := controller.NewPaymentController(paymentService, logger)
 
 	paymentRouter := apiV1.Group("/payments")
+	// Public Routes
+	paymentRouter.POST("/midtrans-notification", paymentController.HandleNotification)
+
 	paymentRouter.Use(middleware.AuthMiddleware())
 	{
 		paymentRouter.POST("/", paymentController.CreatePayment)
