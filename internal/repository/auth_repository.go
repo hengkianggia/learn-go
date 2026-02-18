@@ -20,7 +20,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (r *userRepository) Save(user *model.User) error {
-	return r.db.Create(user).Error
+	return r.db.Save(user).Error
 }
 
 func (r *userRepository) FindByEmail(email string) (*model.User, error) {

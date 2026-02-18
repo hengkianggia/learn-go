@@ -4,6 +4,7 @@ import (
 	"errors"
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -20,6 +21,7 @@ type authController struct {
 type AuthController interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
+	VerifyOTP(c *gin.Context)
 	Profile(c *gin.Context)
 	Logout(c *gin.Context)
 }
@@ -31,9 +33,7 @@ func NewAuthController(authService service.AuthService, logger *slog.Logger) Aut
 func (ctrl *authController) Register(c *gin.Context) {
 	var input dto.RegisterInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for registration", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "registration") {
 		return
 	}
 
@@ -42,7 +42,6 @@ func (ctrl *authController) Register(c *gin.Context) {
 		if err.Error() == "passwords do not match" {
 			response.SendBadRequestError(c, "Passwords do not match")
 		} else {
-			// This handles other errors like "email already exists"
 			response.SendBadRequestError(c, "A user with that email already exists")
 		}
 		return
@@ -50,7 +49,6 @@ func (ctrl *authController) Register(c *gin.Context) {
 
 	ctrl.logger.Info("user registered successfully", slog.String("name", user.Name))
 
-	// Map user model to UserResponse DTO
 	userResponse := dto.UserResponse{
 		ID:          user.ID,
 		Name:        user.Name,
@@ -67,9 +65,7 @@ func (ctrl *authController) Register(c *gin.Context) {
 
 func (ctrl *authController) Login(c *gin.Context) {
 	var input dto.LoginInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for login", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "login") {
 		return
 	}
 
@@ -81,6 +77,23 @@ func (ctrl *authController) Login(c *gin.Context) {
 
 	ctrl.logger.Info("user logged in successfully", slog.String("email", input.Email))
 	response.SendLoginSuccess(c, token)
+}
+
+func (ctrl *authController) VerifyOTP(c *gin.Context) {
+	var input dto.VerifyOTPInput
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "verify OTP") {
+		return
+	}
+
+	err := ctrl.authService.VerifyOTP(input.Email, input.OTP)
+	if err != nil {
+		ctrl.logger.Warn("OTP verification failed", slog.String("email", input.Email), slog.String("error", err.Error()))
+		response.SendBadRequestError(c, err.Error())
+		return
+	}
+
+	ctrl.logger.Info("user verified successfully", slog.String("email", input.Email))
+	response.SendSuccess(c, http.StatusOK, "Account verified successfully", nil)
 }
 
 func (ctrl *authController) Profile(c *gin.Context) {

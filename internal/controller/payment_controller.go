@@ -3,6 +3,7 @@ package controller
 import (
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -36,8 +37,7 @@ func NewPaymentController(paymentService service.PaymentService, logger *slog.Lo
 
 func (ctrl *paymentController) CreatePayment(c *gin.Context) {
 	var req dto.CreatePaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.SendBadRequestError(c, err.Error())
+	if !request.BindJSONOrError(c, &req, ctrl.logger, "create payment") {
 		return
 	}
 
@@ -152,8 +152,7 @@ func (ctrl *paymentController) UpdatePayment(c *gin.Context) {
 	}
 
 	var req dto.UpdatePaymentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.SendBadRequestError(c, err.Error())
+	if !request.BindJSONOrError(c, &req, ctrl.logger, "update payment") {
 		return
 	}
 
@@ -176,8 +175,7 @@ func (ctrl *paymentController) UpdatePaymentStatus(c *gin.Context) {
 	}
 
 	var req dto.UpdatePaymentStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.SendBadRequestError(c, err.Error())
+	if !request.BindJSONOrError(c, &req, ctrl.logger, "update payment status") {
 		return
 	}
 
@@ -226,8 +224,7 @@ func (ctrl *paymentController) DeletePayment(c *gin.Context) {
 
 func (ctrl *paymentController) HandleNotification(c *gin.Context) {
 	var notificationPayload map[string]interface{}
-	if err := c.ShouldBindJSON(&notificationPayload); err != nil {
-		response.SendBadRequestError(c, err.Error())
+	if !request.BindJSONOrError(c, &notificationPayload, ctrl.logger, "handle notification") {
 		return
 	}
 

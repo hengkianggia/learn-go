@@ -5,6 +5,7 @@ import (
 	"learn/internal/dto"
 	"learn/internal/model"
 	"learn/internal/pkg/pagination"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -33,9 +34,7 @@ func NewGuestController(guestService service.GuestService, logger *slog.Logger, 
 
 func (ctrl *guestController) CreateGuest(c *gin.Context) {
 	var input dto.CreateGuestInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for create guest", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "create guest") {
 		return
 	}
 
@@ -84,9 +83,7 @@ func (ctrl *guestController) GetGuestBySlug(c *gin.Context) {
 func (ctrl *guestController) UpdateGuest(c *gin.Context) {
 	slug := c.Param("slug")
 	var input dto.UpdateGuestInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for update guest", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "update guest") {
 		return
 	}
 

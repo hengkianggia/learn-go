@@ -3,6 +3,7 @@ package controller
 import (
 	apperrors "learn/internal/errors"
 	"learn/internal/model"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -51,9 +52,7 @@ func (ctrl *orderCancellationController) CancelOrder(c *gin.Context) {
 	}
 
 	var req CancelRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ctrl.logger.Warn("Failed to bind JSON for cancel order", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid request format")
+	if !request.BindJSONOrError(c, &req, ctrl.logger, "cancel order") {
 		return
 	}
 

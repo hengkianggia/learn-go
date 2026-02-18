@@ -3,6 +3,7 @@ package controller
 import (
 	"learn/internal/dto"
 	"learn/internal/model"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -25,10 +26,7 @@ func NewOrderController(orderService service.OrderService, logger *slog.Logger) 
 
 func (ctrl *orderController) CreateOrder(c *gin.Context) {
 	var input dto.NewOrderInput
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for create order", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "create order") {
 		return
 	}
 

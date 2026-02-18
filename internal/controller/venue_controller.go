@@ -6,6 +6,7 @@ import (
 	"learn/internal/model"
 	"learn/internal/pkg/filters"
 	"learn/internal/pkg/pagination"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -34,9 +35,7 @@ func NewVenueController(venueService service.VenueService, logger *slog.Logger, 
 
 func (ctrl *venueController) CreateVenue(c *gin.Context) {
 	var input dto.CreateVenueInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for create venue", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "create venue") {
 		return
 	}
 
@@ -91,9 +90,7 @@ func (ctrl *venueController) GetVenueBySlug(c *gin.Context) {
 func (ctrl *venueController) UpdateVenue(c *gin.Context) {
 	slug := c.Param("slug")
 	var input dto.UpdateVenueInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for update venue", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "update venue") {
 		return
 	}
 

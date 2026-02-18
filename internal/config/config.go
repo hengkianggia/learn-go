@@ -28,6 +28,12 @@ type Config struct {
 
 	MidtransServerKey string `mapstructure:"MIDTRANS_SERVER_KEY"`
 	MidtransEnv       string `mapstructure:"MIDTRANS_ENV"`
+
+	SMTPHost      string `mapstructure:"SMTP_HOST"`
+	SMTPPort      int    `mapstructure:"SMTP_PORT"`
+	SMTPUser      string `mapstructure:"SMTP_USER"`
+	SMTPPassword  string `mapstructure:"SMTP_PASSWORD"`
+	SMTPFromEmail string `mapstructure:"SMTP_FROM_EMAIL"`
 }
 
 var AppConfig Config
@@ -52,6 +58,12 @@ func InitConfig(logger *slog.Logger) {
 
 	v.SetDefault("MIDTRANS_SERVER_KEY", "")
 	v.SetDefault("MIDTRANS_ENV", "sandbox")
+
+	v.SetDefault("SMTP_HOST", "sandbox.smtp.mailtrap.io")
+	v.SetDefault("SMTP_PORT", 2525)
+	v.SetDefault("SMTP_USER", "")
+	v.SetDefault("SMTP_PASSWORD", "")
+	v.SetDefault("SMTP_FROM_EMAIL", "no-reply@learn-go.com")
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

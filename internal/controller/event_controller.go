@@ -6,6 +6,7 @@ import (
 	"learn/internal/model"
 	"learn/internal/pkg/filters"
 	"learn/internal/pkg/pagination"
+	"learn/internal/pkg/request"
 	"learn/internal/pkg/response"
 	"learn/internal/service"
 	"log/slog"
@@ -36,9 +37,7 @@ func NewEventController(eventService service.EventService, logger *slog.Logger, 
 
 func (ctrl *eventController) CreateEvent(c *gin.Context) {
 	var input dto.CreateEventInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for create event", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "create event") {
 		return
 	}
 
@@ -154,9 +153,7 @@ func (ctrl *eventController) GetEventsByGuestSlug(c *gin.Context) {
 func (ctrl *eventController) UpdateEvent(c *gin.Context) {
 	slug := c.Param("slug")
 	var input dto.UpdateEventInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		ctrl.logger.Warn("failed to bind JSON for update event", slog.String("error", err.Error()))
-		response.SendBadRequestError(c, "Invalid input format")
+	if !request.BindJSONOrError(c, &input, ctrl.logger, "update event") {
 		return
 	}
 

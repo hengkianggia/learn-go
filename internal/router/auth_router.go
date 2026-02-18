@@ -13,12 +13,14 @@ import (
 
 func SetupAuthRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger) {
 	userRepo := repository.NewUserRepository(db)
-	authService := service.NewAuthService(userRepo, logger)
+	emailService := service.NewEmailService(logger)
+	authService := service.NewAuthService(userRepo, emailService, logger)
 	authController := controller.NewAuthController(authService, logger)
 
 	authRoutes := rg.Group("/auth")
 	{
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.POST("/verify-otp", authController.VerifyOTP)
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/logout", authController.Logout)
 	}

@@ -19,6 +19,11 @@ type LoginInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type VerifyOTPInput struct {
+	Email string `json:"email" binding:"required,email"`
+	OTP   string `json:"otp" binding:"required,len=6"`
+}
+
 type UserResponse struct {
 	ID          uint           `json:"id"`
 	Name        string         `json:"name"`
