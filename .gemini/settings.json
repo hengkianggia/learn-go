@@ -7,6 +7,15 @@
         "@modelcontextprotocol/server-postgres",
         "postgresql://postgres:postgres@localhost:5432/learngo"
       ]
+    },
+    "redis": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-redis",
+        "--url",
+        "redis://:redis@localhost:6379"
+      ]
     }
   }
 }
