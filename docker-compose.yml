@@ -41,6 +41,7 @@ services:
     redis:
         image: redis:7-alpine
         container_name: learn-go-redis
+        command: redis-server --requirepass redis
         ports:
             - "6379:6379"
         volumes:

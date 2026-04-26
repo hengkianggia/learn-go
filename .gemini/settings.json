@@ -13,7 +13,6 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-redis",
-        "--url",
         "redis://:redis@localhost:6379"
       ]
     }
