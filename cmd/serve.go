@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	"errors"
 	"learn/internal/config"
 	"learn/internal/database"
 	"learn/internal/model"
@@ -10,6 +12,11 @@ import (
 	"learn/internal/router"
 	seed "learn/internal/seed"
 	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
@@ -28,13 +35,13 @@ var serveCmd = &cobra.Command{
 		db := database.InitDatabase(log)
 		config.ConnectRedis(log)
 
-		// 3. Initialize event bus
-		eventBus := events.NewEventBus()
+		// 3. Initialize event bus with Redis for Streams
+		eventBus := events.NewEventBus(config.Rdb, log)
+		eventBus.Start()
 
 		// 4. Initialize and start job queue
 		jobQueue := queue.NewJobQueue(5, log)
 		jobQueue.Start()
-		defer jobQueue.Stop()
 
 		// Environment-based migration
 		env := config.AppConfig.AppEnv
@@ -60,10 +67,49 @@ var serveCmd = &cobra.Command{
 		// 5. Setup Router with dependencies
 		r := router.SetupRouter(log, db, eventBus)
 
-		// 6. Run Server
-		log.Info("Starting server on port :8080")
-		if err := r.Run(":8080"); err != nil {
-			log.Error("failed to run server", slog.String("error", err.Error()))
+		// 6. Run Server with graceful shutdown
+		srv := &http.Server{
+			Addr:    ":8080",
+			Handler: r,
+		}
+
+		go func() {
+			log.Info("Starting server on port :8080")
+			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Error("failed to run server", slog.String("error", err.Error()))
+			}
+		}()
+
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		defer signal.Stop(quit)
+		<-quit
+
+		log.Info("Shutting down server")
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Error("server forced to shutdown", slog.String("error", err.Error()))
+		} else {
+			log.Info("Server shutdown completed")
+		}
+
+		jobQueue.Stop()
+		eventBus.Stop()
+
+		if sqlDB, err := db.DB(); err == nil {
+			if err := sqlDB.Close(); err != nil {
+				log.Error("failed to close database connection", slog.String("error", err.Error()))
+			}
+		} else {
+			log.Error("failed to get database connection", slog.String("error", err.Error()))
+		}
+
+		if config.Rdb != nil {
+			if err := config.Rdb.Close(); err != nil {
+				log.Error("failed to close Redis connection", slog.String("error", err.Error()))
+			}
 		}
 	},
 }

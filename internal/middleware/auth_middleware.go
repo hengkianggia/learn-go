@@ -2,14 +2,20 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"learn/internal/config"
 	"learn/internal/database"
 	"learn/internal/model"
 	"learn/internal/pkg/response"
-	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+)
+
+const (
+	JWTIssuer   = "learn-go"
+	JWTAudience = "learn-go-api"
 )
 
 type Claims struct {
@@ -29,8 +35,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims := &Claims{}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if token.Method != jwt.SigningMethodHS256 {
+				return nil, fmt.Errorf("unexpected signing method: %s", token.Header["alg"])
+			}
 			return []byte(config.AppConfig.JWTSecretKey), nil
-		})
+		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 		if err != nil {
 			if errors.Is(err, jwt.ErrSignatureInvalid) {
@@ -38,19 +47,37 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			response.SendBadRequestError(c, "Invalid token")
+			response.SendUnauthorizedError(c, "Invalid token")
 			return
 		}
 
-		if !token.Valid {
+		if !token.Valid || !claims.VerifyIssuer(JWTIssuer, true) || !claims.VerifyAudience(JWTAudience, true) {
 			response.SendUnauthorizedError(c, "Invalid token")
 			return
 		}
 
 		var user model.User
-		if err := database.DB.Where("email = ?", claims.Email).First(&user).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			c.Abort()
+		if claims.Subject != "" {
+			userID, err := strconv.ParseUint(claims.Subject, 10, 64)
+			if err == nil {
+				err = database.DB.First(&user, uint(userID)).Error
+			}
+			if err != nil {
+				response.SendUnauthorizedError(c, "User not found")
+				return
+			}
+		} else if claims.Email != "" {
+			if err := database.DB.Where("email = ?", claims.Email).First(&user).Error; err != nil {
+				response.SendUnauthorizedError(c, "User not found")
+				return
+			}
+		} else {
+			response.SendUnauthorizedError(c, "Invalid token claims")
+			return
+		}
+
+		if !user.IsVerified {
+			response.SendForbiddenError(c, "Please verify your account before accessing this resource")
 			return
 		}
 

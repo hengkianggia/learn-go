@@ -121,6 +121,10 @@ func (s *authService) Login(input dto.LoginInput) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
+	if !user.IsVerified {
+		return "", errors.New("please verify your account before logging in")
+	}
+
 	token, err := GenerateJWT(*user)
 	if err != nil {
 		s.logger.Error("failed to generate token", slog.String("error", err.Error()))

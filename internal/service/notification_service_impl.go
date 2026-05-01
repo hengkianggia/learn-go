@@ -26,6 +26,9 @@ func (s *paymentService) HandleNotification(payload map[string]interface{}) erro
 	transactionStatus, _ := payload["transaction_status"].(string)
 	fraudStatus, _ := payload["fraud_status"].(string)
 	transactionID, _ := payload["transaction_id"].(string)
+	if orderIDStr == "" || transactionStatus == "" || transactionID == "" {
+		return apperrors.NewBusinessRuleError("notification_payload", "missing required notification fields")
+	}
 
 	s.logger.Info("processing midtrans notification",
 		slog.String("order_id", orderIDStr),
@@ -58,6 +61,8 @@ func (s *paymentService) HandleNotification(payload map[string]interface{}) erro
 		newStatus = model.PaymentStatusSuccess
 	case "deny", "cancel", "expire":
 		newStatus = model.PaymentStatusFailed
+	case "refund", "partial_refund":
+		newStatus = model.PaymentStatusRefunded
 	case "pending":
 		newStatus = model.PaymentStatusPending
 	default:
@@ -65,13 +70,28 @@ func (s *paymentService) HandleNotification(payload map[string]interface{}) erro
 		return nil
 	}
 
-	// 5. Update Payment Status if changed
-	if payment.PaymentStatus != newStatus {
-		_, err := s.UpdatePaymentStatus(payment.ID, newStatus)
-		if err != nil {
-			s.logger.Error("failed to update payment status from notification", slog.String("error", err.Error()))
-			return err
-		}
+	// 5. Update Payment Status if changed. Duplicate notifications are intentionally idempotent.
+	if payment.PaymentStatus == newStatus {
+		s.logger.Info("ignoring duplicate midtrans notification",
+			slog.Uint64("payment_id", uint64(payment.ID)),
+			slog.String("status", string(newStatus)),
+		)
+		return nil
+	}
+
+	if !model.CanTransitionPaymentStatus(payment.PaymentStatus, newStatus) {
+		s.logger.Warn("ignoring invalid payment status transition from notification",
+			slog.Uint64("payment_id", uint64(payment.ID)),
+			slog.String("from", string(payment.PaymentStatus)),
+			slog.String("to", string(newStatus)),
+		)
+		return nil
+	}
+
+	_, err = s.UpdatePaymentStatus(payment.ID, newStatus)
+	if err != nil {
+		s.logger.Error("failed to update payment status from notification", slog.String("error", err.Error()))
+		return err
 	}
 
 	return nil

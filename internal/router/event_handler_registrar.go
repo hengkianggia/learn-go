@@ -13,11 +13,11 @@ func RegisterEventHandlersWithRepos(eventBus *events.EventBus, orderRepo reposit
 
 	// Register OrderPaidEvent handler
 	orderPaidHandler := events.NewOrderPaidEventHandler(orderRepo, logger)
-	eventBus.Subscribe("order.paid", orderPaidHandler)
+	eventBus.Subscribe("order.paid", orderPaidHandler, events.OrderPaidEvent{})
 
 	// Register OrderCancelledEvent handler
 	orderCancelledHandler := events.NewOrderCancelledEventHandler(orderRepo, logger)
-	eventBus.Subscribe("order.cancelled", orderCancelledHandler)
+	eventBus.Subscribe("order.cancelled", orderCancelledHandler, events.OrderCancelledEvent{})
 
 	// Register PaymentStatusUpdatedEvent handler
 	paymentStatusHandler := events.NewPaymentStatusUpdatedEventHandler(
@@ -27,5 +27,5 @@ func RegisterEventHandlersWithRepos(eventBus *events.EventBus, orderRepo reposit
 		eventRepo,
 		logger,
 	)
-	eventBus.Subscribe("payment.status.updated", paymentStatusHandler)
+	eventBus.Subscribe("payment.status.updated", paymentStatusHandler, events.PaymentStatusUpdatedEvent{})
 }

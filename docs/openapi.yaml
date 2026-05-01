@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: Learn Go Event API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /auth/register:
+    post:
+      summary: Register user
+      tags: [Auth]
+      responses:
+        '200': { description: Registered }
+        '400': { description: Validation error }
+        '429': { description: Rate limited }
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP
+      tags: [Auth]
+      responses:
+        '200': { description: Verified }
+        '400': { description: Validation error }
+        '429': { description: Rate limited }
+  /auth/login:
+    post:
+      summary: Login and set jwt_token cookie
+      tags: [Auth]
+      responses:
+        '200': { description: Login success }
+        '401': { description: Invalid credentials }
+        '429': { description: Rate limited }
+  /auth/logout:
+    post:
+      summary: Clear jwt_token cookie
+      tags: [Auth]
+      responses:
+        '200': { description: Logout success }
+  /profile:
+    get:
+      summary: Get current profile
+      tags: [Auth]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Profile }
+        '401': { description: Unauthorized }
+  /venues:
+    get:
+      summary: List venues
+      tags: [Venues]
+      responses:
+        '200': { description: Venue list }
+    post:
+      summary: Create venue
+      tags: [Venues]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Venue created }
+  /venues/{slug}:
+    get:
+      summary: Get venue by slug
+      tags: [Venues]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Venue detail }
+    patch:
+      summary: Update venue
+      tags: [Venues]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Venue updated }
+  /guests:
+    get:
+      summary: List guests
+      tags: [Guests]
+      responses:
+        '200': { description: Guest list }
+    post:
+      summary: Create guest
+      tags: [Guests]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Guest created }
+  /guests/{slug}:
+    get:
+      summary: Get guest by slug
+      tags: [Guests]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Guest detail }
+    patch:
+      summary: Update guest
+      tags: [Guests]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Guest updated }
+  /events:
+    get:
+      summary: List events
+      tags: [Events]
+      responses:
+        '200': { description: Event list }
+    post:
+      summary: Create event
+      tags: [Events]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Event created }
+  /events/{slug}:
+    get:
+      summary: Get event by slug
+      tags: [Events]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Event detail }
+    patch:
+      summary: Update event
+      tags: [Events]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Event updated }
+  /orders:
+    post:
+      summary: Create order
+      tags: [Orders]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Order created }
+        '429': { description: Rate limited }
+  /orders/{id}:
+    delete:
+      summary: Cancel order
+      tags: [Orders]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Order cancelled }
+  /payments/midtrans-notification:
+    post:
+      summary: Midtrans payment notification callback
+      tags: [Payments]
+      responses:
+        '200': { description: Notification processed idempotently }
+        '429': { description: Rate limited }
+  /payments:
+    post:
+      summary: Create payment for order
+      tags: [Payments]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Payment created }
+        '429': { description: Rate limited }
+  /payments/{id}:
+    get:
+      summary: Get payment by ID
+      tags: [Payments]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Payment detail }
+    put:
+      summary: Update payment
+      tags: [Payments]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Payment updated }
+    delete:
+      summary: Delete payment
+      tags: [Payments]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Payment deleted }
+  /payments/{id}/status:
+    patch:
+      summary: Update payment status
+      tags: [Payments]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Payment status updated }
+        '429': { description: Rate limited }
+  /payments/order/{order_id}:
+    get:
+      summary: Get payment by order ID
+      tags: [Payments]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: order_id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Payment detail }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt_token

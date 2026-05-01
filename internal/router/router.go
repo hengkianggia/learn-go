@@ -1,6 +1,8 @@
 package router
 
 import (
+	"learn/internal/middleware"
+	"learn/internal/model"
 	"learn/internal/pkg/events"
 	"learn/internal/repository"
 	"log/slog"
@@ -18,18 +20,34 @@ func LoggerMiddleware(logger *slog.Logger) gin.HandlerFunc {
 
 		duration := time.Since(start)
 
-		logger.Info("request",
+		fields := []slog.Attr{
+			slog.String("request_id", middleware.GetRequestID(c)),
 			slog.String("method", c.Request.Method),
 			slog.String("path", c.Request.URL.Path),
+			slog.String("route", c.FullPath()),
 			slog.Int("status", c.Writer.Status()),
-			slog.Duration("duration", duration),
-		)
+			slog.Int64("duration_ms", duration.Milliseconds()),
+			slog.String("client_ip", c.ClientIP()),
+			slog.String("user_agent", c.Request.UserAgent()),
+		}
+
+		if userCtx, ok := c.Get("user"); ok {
+			if user, ok := userCtx.(model.User); ok {
+				fields = append(fields, slog.Uint64("user_id", uint64(user.ID)))
+			}
+		}
+		if len(c.Errors) > 0 {
+			fields = append(fields, slog.String("error", c.Errors.String()))
+		}
+
+		logger.LogAttrs(c.Request.Context(), slog.LevelInfo, "request", fields...)
 	}
 }
 
 func SetupRouter(logger *slog.Logger, db *gorm.DB, eventBus *events.EventBus) *gin.Engine {
 	r := gin.Default()
 
+	r.Use(middleware.RequestIDMiddleware())
 	r.Use(LoggerMiddleware(logger))
 
 	gin.SetMode(gin.ReleaseMode)

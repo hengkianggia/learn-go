@@ -5,9 +5,11 @@ import (
 	"learn/internal/middleware"
 	"learn/internal/model"
 	"learn/internal/pkg/events"
+	"learn/internal/pkg/ratelimiter"
 	"learn/internal/repository"
 	"learn/internal/service"
 	"log/slog"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -25,7 +27,7 @@ func SetupOrderRoutes(rg *gin.RouterGroup, db *gorm.DB, logger *slog.Logger, eve
 	orderRoutes := rg.Group("/orders")
 	orderRoutes.Use(middleware.AuthMiddleware())
 	{
-		orderRoutes.POST("/", middleware.RoleMiddleware(model.Attendee), orderController.CreateOrder)
+		orderRoutes.POST("/", middleware.RoleMiddleware(model.Attendee), ratelimiter.Limit("order_create", 10, time.Minute), orderController.CreateOrder)
 		orderRoutes.DELETE("/:id", middleware.RoleMiddleware(model.Attendee), orderCancellationController.CancelOrder)
 	}
 }

@@ -128,7 +128,13 @@ func (s *paymentService) CreatePayment(req *dto.CreatePaymentRequest, userID uin
 		payment.PaymentCode = midtransResp.PaymentCode
 	}
 
-	if err := s.paymentRepository.CreatePayment(payment); err != nil {
+	if err := s.paymentRepository.CreatePaymentInTransaction(payment); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, apperrors.NewBusinessRuleError("payment_unique", "payment already exists for this order")
+		}
+		if errors.Is(err, gorm.ErrInvalidTransaction) {
+			return nil, apperrors.NewBusinessRuleError("order_status", "payment can only be created for pending orders")
+		}
 		s.logger.Error("failed to create payment in repository", slog.String("error", err.Error()))
 		return nil, apperrors.NewSystemError("create_payment", err)
 	}
@@ -206,45 +212,35 @@ func (s *paymentService) UpdatePaymentStatus(paymentID uint, status model.Paymen
 	}
 	defer s.paymentRepository.GetRedisClient().Del(config.Ctx, lockKey) // Clean up lock
 
-	// Create a job for processing the payment status update
-	job := queue.NewPaymentJob(
-		paymentID,
-		status,
-		s.orderRepository,
-		s.paymentRepository,
-		s.ticketRepository,
-		s.eventRepository,
-		s.logger,
-	)
-
-	// Add the job to the queue for asynchronous processing
-	s.jobQueue.Enqueue(job)
-
-	// Return the payment with the updated status without waiting for the job to complete
+	// Apply payment/order status changes synchronously in one DB transaction.
 	payment, err := s.paymentRepository.GetPaymentByID(paymentID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, apperrors.NewBusinessRuleError("payment_exists", "payment not found")
 		}
-
 		s.logger.Error("failed to get payment by ID for status update", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
 		return nil, apperrors.NewSystemError("get_payment_for_status_update", err)
 	}
 
-	payment.PaymentStatus = status
-	if err := s.paymentRepository.UpdatePayment(payment); err != nil {
-		s.logger.Error("failed to update payment status in repository", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
+	if !model.CanTransitionPaymentStatus(payment.PaymentStatus, status) {
+		return nil, apperrors.NewBusinessRuleError("payment_status_transition", fmt.Sprintf("cannot transition payment status from %s to %s", payment.PaymentStatus, status))
+	}
+
+	payment, changed, err := s.paymentRepository.UpdatePaymentStatusInTransaction(paymentID, status)
+	if err != nil {
+		s.logger.Error("failed to update payment status in transaction", slog.Uint64("payment_id", uint64(paymentID)), slog.String("error", err.Error()))
 		return nil, apperrors.NewSystemError("update_payment_status", err)
 	}
 
-	// Publish PaymentStatusUpdatedEvent
-	paymentStatusEvent := events.PaymentStatusUpdatedEvent{
-		PaymentID: paymentID,
-		OrderID:   payment.OrderID,
-		Status:    status,
-		UpdatedAt: time.Now(),
+	if changed {
+		paymentStatusEvent := events.PaymentStatusUpdatedEvent{
+			PaymentID: paymentID,
+			OrderID:   payment.OrderID,
+			Status:    status,
+			UpdatedAt: time.Now(),
+		}
+		s.eventBus.Publish(paymentStatusEvent)
 	}
-	s.eventBus.Publish(paymentStatusEvent)
 
 	return payment, nil
 }

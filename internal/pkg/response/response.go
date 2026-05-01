@@ -1,6 +1,7 @@
 package response
 
 import (
+	"learn/internal/config"
 	"log/slog"
 	"net/http"
 	"time"
@@ -53,19 +54,37 @@ func sendError(c *gin.Context, statusCode int, code, message string, details int
 // --- Specific Success Helpers ---
 
 func SendLoginSuccess(c *gin.Context, token string) {
-	c.SetCookie("jwt_token", token, int(1*time.Hour/time.Second), "/", "localhost", false, true)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "jwt_token",
+		Value:    token,
+		Path:     "/",
+		MaxAge:   int(24 * time.Hour / time.Second),
+		HttpOnly: true,
+		Secure:   config.AppConfig.AppEnv == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
 	SendSuccess(c, http.StatusOK, "Login successful", gin.H{"token": token})
 }
 
 func SendLogoutSuccess(c *gin.Context) {
-	c.SetCookie("jwt_token", "", -1, "/", "localhost", false, true)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "jwt_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   config.AppConfig.AppEnv == "production",
+		SameSite: http.SameSiteLaxMode,
+	})
 	SendSuccess(c, http.StatusOK, "Logout successful", nil)
 }
 
 // --- Specific Error Helpers ---
 
 func SendInternalServerError(c *gin.Context, logger *slog.Logger, err error) {
-	logger.Error("internal server error", slog.String("error", err.Error()))
+	if logger != nil {
+		logger.Error("internal server error", slog.String("error", err.Error()))
+	}
 	sendError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.", nil)
 }
 
@@ -87,4 +106,8 @@ func SendForbiddenError(c *gin.Context, message string) {
 
 func SendNotFoundError(c *gin.Context, message string) {
 	sendError(c, http.StatusNotFound, "NOT_FOUND", message, nil)
+}
+
+func SendTooManyRequestsError(c *gin.Context, message string) {
+	sendError(c, http.StatusTooManyRequests, "TOO_MANY_REQUESTS", message, nil)
 }
