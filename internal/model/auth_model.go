@@ -22,6 +22,8 @@ type User struct {
 	ProfilePicture string
 	UserType       UserType `gorm:"default:'attendee'"`
 	IsVerified     bool     `gorm:"default:false"`
+	IsApproved     bool     `gorm:"default:false"`
+	IsBlocked      bool     `gorm:"default:false"`
 	Orders         []Order
 }
 

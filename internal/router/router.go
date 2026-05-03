@@ -87,6 +87,7 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB, eventBus *events.EventBus) *g
 		SetupOrderRoutes(apiV1, db, logger, eventBus)
 		SetupPaymentRoutes(apiV1, db, logger, eventBus)
 		SetupTicketRoutes(apiV1, db, logger)
+		SetupAdminRoutes(apiV1, db, logger)
 	}
 
 	return r

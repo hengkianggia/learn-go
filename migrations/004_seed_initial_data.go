@@ -41,6 +41,7 @@ func migrate004(db *gorm.DB) error {
 			Password:   string(hashedPassword),
 			UserType:   "administrator",
 			IsVerified: true,
+			IsApproved: true,
 		}
 
 		if err := db.Create(&adminUser).Error; err != nil {

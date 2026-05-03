@@ -56,6 +56,8 @@ func (ctrl *authController) Register(c *gin.Context) {
 		PhoneNumber: user.PhoneNumber,
 		UserType:    user.UserType,
 		IsVerified:  user.IsVerified,
+		IsApproved:  user.IsApproved,
+		IsBlocked:   user.IsBlocked,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
 	}
@@ -118,6 +120,8 @@ func (ctrl *authController) Profile(c *gin.Context) {
 		PhoneNumber: user.PhoneNumber,
 		UserType:    user.UserType,
 		IsVerified:  user.IsVerified,
+		IsApproved:  user.IsApproved,
+		IsBlocked:   user.IsBlocked,
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
 	}

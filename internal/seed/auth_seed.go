@@ -16,6 +16,7 @@ func SeedUsers(db *gorm.DB, logger *slog.Logger) {
 			Password:   "password123",
 			UserType:   model.Administrator,
 			IsVerified: true,
+			IsApproved: true,
 		},
 		{
 			Name:       "Organizer",
@@ -23,6 +24,7 @@ func SeedUsers(db *gorm.DB, logger *slog.Logger) {
 			Password:   "password123",
 			UserType:   model.Organizer,
 			IsVerified: true,
+			IsApproved: true,
 		},
 		{
 			Name:       "hengki",
@@ -30,6 +32,7 @@ func SeedUsers(db *gorm.DB, logger *slog.Logger) {
 			Password:   "password123",
 			UserType:   model.Attendee,
 			IsVerified: true,
+			IsApproved: true,
 		},
 		{
 			Name:       "anggia",
@@ -37,6 +40,7 @@ func SeedUsers(db *gorm.DB, logger *slog.Logger) {
 			Password:   "password123",
 			UserType:   model.Attendee,
 			IsVerified: true,
+			IsApproved: true,
 		},
 	}
 

@@ -75,11 +75,11 @@ func seedTestVenues(db *gorm.DB) error {
 
 func seedTestUsers(db *gorm.DB) error {
 	users := []model.User{
-		{Name: "Alice Attendee", Email: "alice@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true},
-		{Name: "Bob Buyer", Email: "bob@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true},
-		{Name: "Charlie Customer", Email: "charlie@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true},
-		{Name: "Diana Devotee", Email: "diana@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true},
-		{Name: "Eve Enthusiast", Email: "eve@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true},
+		{Name: "Alice Attendee", Email: "alice@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true, IsApproved: true},
+		{Name: "Bob Buyer", Email: "bob@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true, IsApproved: true},
+		{Name: "Charlie Customer", Email: "charlie@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true, IsApproved: true},
+		{Name: "Diana Devotee", Email: "diana@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true, IsApproved: true},
+		{Name: "Eve Enthusiast", Email: "eve@test.com", Password: "password123", UserType: model.Attendee, IsVerified: true, IsApproved: true},
 	}
 	for _, u := range users {
 		if err := db.Where("email = ?", u.Email).FirstOrCreate(&model.User{}, u).Error; err != nil {

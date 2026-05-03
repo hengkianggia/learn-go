@@ -34,22 +34,28 @@ func NewAuthService(userRepo repository.UserRepository, emailService EmailServic
 }
 
 func (s *authService) Register(input dto.RegisterInput) (*model.User, error) {
-	// Validate that passwords match
 	if input.Password != input.ConfirmPassword {
 		return nil, errors.New("passwords do not match")
 	}
 
+	if input.UserType != "" && input.UserType != model.Attendee && input.UserType != model.Organizer {
+		return nil, errors.New("invalid user type")
+	}
+
+	if input.UserType == "" {
+		input.UserType = model.Attendee
+	}
+
+	isApproved := input.UserType == model.Attendee
+
 	user := model.User{
 		Name:        input.Name,
 		Email:       input.Email,
-		Password:    input.Password, // Password will be hashed by the BeforeSave hook
+		Password:    input.Password,
 		PhoneNumber: input.PhoneNumber,
 		UserType:    input.UserType,
 		IsVerified:  false,
-	}
-
-	if user.UserType == "" {
-		user.UserType = model.Attendee
+		IsApproved:  isApproved,
 	}
 
 	err := s.userRepo.Save(&user)
@@ -66,7 +72,6 @@ func (s *authService) Register(input dto.RegisterInput) (*model.User, error) {
 	err = config.Rdb.Set(context.Background(), otpKey, otp, 5*time.Minute).Err()
 	if err != nil {
 		s.logger.Error("failed to save OTP to Redis", slog.String("error", err.Error()))
-		// Note: User is already created. In a production system, we might want to handle this better (e.g. rollback or separate step).
 		return nil, errors.New("failed to generate verification code")
 	}
 
@@ -74,8 +79,6 @@ func (s *authService) Register(input dto.RegisterInput) (*model.User, error) {
 	err = s.emailService.SendOTP(user.Email, otp)
 	if err != nil {
 		s.logger.Error("failed to send OTP email", slog.String("error", err.Error()))
-		// Proceeding even if email fails, as user can request resend (if implemented) or we can just log it.
-		// For this task, we'll return the error to let the user know something went wrong.
 		return nil, errors.New("failed to send verification email")
 	}
 
@@ -123,6 +126,14 @@ func (s *authService) Login(input dto.LoginInput) (string, error) {
 
 	if !user.IsVerified {
 		return "", errors.New("please verify your account before logging in")
+	}
+
+	if user.IsBlocked {
+		return "", errors.New("your account has been blocked")
+	}
+
+	if !user.IsApproved {
+		return "", errors.New("your organizer account is pending approval")
 	}
 
 	token, err := GenerateJWT(*user)

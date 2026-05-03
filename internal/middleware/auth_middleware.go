@@ -81,6 +81,11 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		if user.IsBlocked {
+			response.SendForbiddenError(c, "Your account has been blocked")
+			return
+		}
+
 		c.Set("user", user)
 		c.Next()
 	}

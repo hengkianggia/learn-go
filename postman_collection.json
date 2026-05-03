@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Learn Go API",
-		"description": "## Authentication\n\nAPI uses JWT via HTTP-only cookie (`jwt_token`).\n\n**Flow:**\n1. `POST /auth/login` — sets `jwt_token` cookie automatically\n2. All authenticated endpoints use the cookie (no manual auth header needed in Postman if cookies are enabled)\n3. `POST /auth/logout` — clears the cookie\n\n**Test Users (from seed migration `007`):**\n| Email | Password | Role |\n|---|---|---|\n| admin@example.com | password123 | administrator |\n| alice@test.com | password123 | attendee |\n| bob@test.com | password123 | attendee |\n\n**Roles:** `administrator`, `organizer`, `attendee`\n\n**Rate Limiting:** Applied on auth, order, payment, and ticket check-in endpoints.",
+		"description": "## Authentication\n\nAPI uses JWT via HTTP-only cookie (`jwt_token`).\n\n**Flow:**\n1. `POST /auth/login` — sets `jwt_token` cookie automatically\n2. All authenticated endpoints use the cookie (no manual auth header needed in Postman if cookies are enabled)\n3. `POST /auth/logout` — clears the cookie\n\n**Test Users (from seed):**\n| Email | Password | Role | Status |\n|---|---|---|---|\n| admin@example.com | password123 | administrator | approved |\n| organizer@example.com | password123 | organizer | approved |\n| alice@test.com | password123 | attendee | approved |\n\n**Roles:** `administrator`, `organizer`, `attendee`\n\n**Registration Flow:**\n- `attendee`: auto-approved after OTP verification → can login immediately\n- `organizer`: OTP verified but pending admin approval → must be approved by administrator before login\n\n**Admin APIs:** Administrator can approve/reject organizer registrations, block/unblock users, and delete users.\n\n**Rate Limiting:** Applied on auth, order, payment, ticket check-in, and admin endpoints.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -9,7 +9,7 @@
 			"name": "Auth",
 			"item": [
 				{
-					"name": "Register",
+					"name": "Register (Attendee)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -28,7 +28,31 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "register"]
 						},
-						"description": "Register a new user. Rate limited: 5/min."
+						"description": "Register as attendee. Auto-approved after OTP verification. Rate limited: 5/min."
+					},
+					"response": []
+				},
+				{
+					"name": "Register (Organizer)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Organizer\",\n  \"email\": \"org@example.com\",\n  \"password\": \"password123\",\n  \"confirm_password\": \"password123\",\n  \"phone_number\": \"081234567891\",\n  \"user_type\": \"organizer\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register as organizer. OTP verified but pending admin approval. Cannot login until approved by administrator. Rate limited: 5/min."
 					},
 					"response": []
 				},
@@ -52,7 +76,7 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["auth", "login"]
 						},
-						"description": "Login. Sets `jwt_token` cookie automatically. Rate limited: 5/min."
+						"description": "Login as admin. Sets `jwt_token` cookie automatically. Rate limited: 5/min.\n\nBlocked users cannot login. Organizer accounts must be approved by admin first."
 					},
 					"response": []
 				},
@@ -615,6 +639,150 @@
 							"path": ["tickets", "check-in"]
 						},
 						"description": "Scan/check-in a ticket using its unique ticket code.\n\n**Requirements:**\n- Order must be PAID\n- Ticket must not have been scanned before\n\n**Response includes:** ticket details, owner info, order status.\n\n**Auth:** administrator or organizer. Rate limited: 120/min.\n\n> To get ticket codes: query `SELECT ticket_code FROM tickets;` or check `./storage/qrcodes/` folder."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "List Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users?user_type=organizer&page=1&per_page=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users"],
+							"query": [
+								{ "key": "user_type", "value": "organizer", "description": "Filter: attendee, organizer, administrator" },
+								{ "key": "page", "value": "1" },
+								{ "key": "per_page", "value": "10" }
+							]
+						},
+						"description": "List users with pagination meta. Filters: `user_type`, `page`, `per_page`.\n\nResponse includes `meta` object (current_page, per_page, total_items, total_pages).\n\n**Auth:** administrator only."
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Organizer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/approve",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", "approve"]
+						},
+						"description": "Approve an organizer account. Sets `is_approved = true`. Only works on organizer-type users.\n\n**Auth:** administrator only."
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Organizer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", "reject"]
+						},
+						"description": "Reject an organizer and delete their account permanently. Only works on organizer-type users.\n\n**Auth:** administrator only."
+					},
+					"response": []
+				},
+				{
+					"name": "Block User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/block",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", "block"]
+						},
+						"description": "Block a user (organizer or attendee). Blocked users cannot login. Cannot block an administrator.\n\n**Auth:** administrator only."
+					},
+					"response": []
+				},
+				{
+					"name": "Unblock User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/unblock",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", "unblock"]
+						},
+						"description": "Unblock a previously blocked user.\n\n**Auth:** administrator only."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/delete",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", "delete"]
+						},
+						"description": "Permanently delete a user. Cannot delete an administrator.\n\n**Auth:** administrator only."
 					},
 					"response": []
 				}
