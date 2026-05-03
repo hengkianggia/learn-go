@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -48,6 +49,21 @@ func SetupRouter(logger *slog.Logger, db *gorm.DB, eventBus *events.EventBus) *g
 	r := gin.Default()
 
 	r.Use(middleware.RequestIDMiddleware())
+	r.Use(cors.New(cors.Config{
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "http://localhost:3000" ||
+				origin == "http://localhost:5173" ||
+				origin == "http://localhost:5174" ||
+				origin == "http://127.0.0.1:3000" ||
+				origin == "http://127.0.0.1:5173"
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowWebSockets:  true,
+		MaxAge:           12 * time.Hour,
+	}))
 	r.Use(LoggerMiddleware(logger))
 
 	gin.SetMode(gin.ReleaseMode)
