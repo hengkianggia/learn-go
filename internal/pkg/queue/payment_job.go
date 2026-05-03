@@ -2,7 +2,9 @@ package queue
 
 import (
 	"fmt"
+	"learn/internal/config"
 	"learn/internal/model"
+	"learn/internal/pkg/qrcode"
 	"learn/internal/pkg/random"
 	"learn/internal/repository"
 	"log/slog"
@@ -140,12 +142,21 @@ func (pj *PaymentJob) generateTicketsForOrder(order *model.Order) error {
 		}
 
 		for i := 0; i < lineItem.Quantity; i++ {
+			ticketCode := random.String(10)
+			qrPath, qrErr := qrcode.GenerateQRCodePNG(config.AppConfig.StorageQRPath, ticketCode)
+			if qrErr != nil {
+				pj.Logger.Error("failed to generate QR code for ticket",
+					slog.String("ticket_code", ticketCode),
+					slog.String("error", qrErr.Error()))
+			}
+
 			ticketsToCreate = append(ticketsToCreate, model.Ticket{
 				OrderID:      order.ID,
 				EventPriceID: lineItem.EventPriceID,
 				Price:        lineItem.PricePerUnit,
 				Type:         eventPrice.Name, // Use EventPrice Name as Ticket Type
-				TicketCode:   random.String(10),
+				TicketCode:   ticketCode,
+				QrCodePath:   qrPath,
 				OwnerName:    order.User.Name,
 				OwnerEmail:   order.User.Email,
 			})

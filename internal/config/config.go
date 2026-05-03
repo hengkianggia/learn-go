@@ -29,6 +29,8 @@ type Config struct {
 	MidtransServerKey string `mapstructure:"MIDTRANS_SERVER_KEY"`
 	MidtransEnv       string `mapstructure:"MIDTRANS_ENV"`
 
+	StorageQRPath string `mapstructure:"STORAGE_QR_PATH"`
+
 	SMTPHost      string `mapstructure:"SMTP_HOST"`
 	SMTPPort      int    `mapstructure:"SMTP_PORT"`
 	SMTPUser      string `mapstructure:"SMTP_USER"`
@@ -58,6 +60,8 @@ func InitConfig(logger *slog.Logger) {
 
 	v.SetDefault("MIDTRANS_SERVER_KEY", "")
 	v.SetDefault("MIDTRANS_ENV", "sandbox")
+
+	v.SetDefault("STORAGE_QR_PATH", "./storage/qrcodes")
 
 	v.SetDefault("SMTP_HOST", "sandbox.smtp.mailtrap.io")
 	v.SetDefault("SMTP_PORT", 2525)

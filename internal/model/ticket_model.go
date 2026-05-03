@@ -11,6 +11,7 @@ type Ticket struct {
 	Type         string `gorm:"not null"`
 	SeatNumber   string
 	TicketCode   string `gorm:"not null;unique"`
+	QrCodePath   string `gorm:"type:varchar(255)"`
 	IsScanned    bool   `gorm:"default:false"`
 	OwnerName    string
 	OwnerEmail   string

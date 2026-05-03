@@ -4,3 +4,6 @@
 # Database file
 test.db
 opencode.json
+
+# QR code generated images
+storage/qrcodes/*.png
